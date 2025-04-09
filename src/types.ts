@@ -9,29 +9,24 @@ export interface Layer extends LayerNoSamples {
 }
 
 export interface LayerNoSamples {
+  id: number;
   lengthInFrames: number;
   frameOffset: number;
   numChannels: number;
   numSamplesRecorded: number;
-}
-
-export interface AddlLayerInfo {
-  maxChunkAmplitudes: number[]; // one per channel
+  muted: boolean;
+  gain: number;
 }
 
 export type MessageToWorklet =
   | { command: 'set latency offset'; value: number }
   | { command: 'start recording' }
   | { command: 'stop recording' }
-  | { command: 'cancel recording' }
-  | { command: 'start playing' }
-  | { command: 'stop playing' }
-  | { command: 'update loops'; loops: LayerNoSamples[] }
-  | { command: 'set layer samples'; loopId: number; samples: Float32Array };
+  | { command: 'update layers'; loops: LayerNoSamples[] }
+  | { command: 'set layer samples'; layerId: number; samples: Float32Array };
 
 export type MessageFromWorklet =
   | { event: 'started recording'; frameOffset: number }
-  | { event: 'recorded more samples'; samples: Float32Array }
-  | { event: 'finished recording'; loop: LayerNoSamples }
+  | { event: 'finished recording'; layer: Layer }
   | { event: 'playhead moved'; value: number | null }
   | { event: 'debug'; payload: any };

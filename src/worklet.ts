@@ -160,13 +160,6 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
         this.say('stopped recording');
         this.sendMessage({ event: 'debug', payload: this.layers.map((l) => l.serialize()) });
         break;
-      case 'cancel recording':
-        this.layers = this.layers.filter((l) => !l.isRecording);
-        break;
-      case 'start playing':
-      case 'stop playing':
-        this.movePlayhead(msg.command === 'start playing' ? 0 : null);
-        break;
       default:
         console.log('unsupported message', msg);
         throw new Error('unsupported message!');
