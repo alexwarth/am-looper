@@ -131,14 +131,14 @@ const MAX_GAIN_NUBBIN_RADIUS = LAYER_HEIGHT_IN_PIXELS / 2;
 const GAIN_NUBBIN_SPACING = 100;
 
 function renderLayers() {
-  const lengthInFrames = getLengthInFrames(state.doc.layers);
+  const layers = state.shared.layers;
+  const lengthInFrames = getLengthInFrames(layers);
   if (lengthInFrames === null) {
     return;
   }
 
   const pixelsPerFrame = (innerWidth - 2 * GAIN_NUBBIN_SPACING) / lengthInFrames;
   let top = 2 * LAYER_HEIGHT_IN_PIXELS;
-  const layers = state.doc.layers;
   const x0 = GAIN_NUBBIN_SPACING;
   const x1 = x0 + lengthInFrames * pixelsPerFrame;
   for (let idx = 0; idx < layers.length; idx++) {

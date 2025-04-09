@@ -16,7 +16,7 @@ const looper = makeLooper();
 await audio.init(context, looper);
 
 const state: UiState = {
-  doc: { layers: [] },
+  shared: { layers: [] },
   samplesAsFloats: new Map(),
   playhead: 0,
 };
@@ -32,7 +32,7 @@ function makeLooper() {
         state.playhead = m.value;
         break;
       case 'finished recording':
-        state.doc.layers.push({ ...m.layer, samples: new Uint8Array(m.samples) });
+        state.shared.layers.push({ ...m.layer, samples: new Uint8Array(m.samples) });
         state.samplesAsFloats.set(m.layer.id, new Float32Array(m.samples));
         break;
       default:

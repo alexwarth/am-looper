@@ -1,5 +1,5 @@
 export interface UiState {
-  doc: LooperState;
+  shared: LooperState;
   samplesAsFloats: Map<number, Float32Array>;
   playhead: number;
 }
