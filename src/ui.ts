@@ -1,7 +1,11 @@
-let looper: AudioWorkletNode;
+import { UiState } from './types';
 
-export function init(_looper: AudioWorkletNode) {
+let looper: AudioWorkletNode;
+let state: UiState;
+
+export function init(_looper: AudioWorkletNode, _state: UiState) {
   looper = _looper;
+  state = _state;
 
   function onFrame() {
     render();

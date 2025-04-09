@@ -1,3 +1,9 @@
+export interface UiState {
+  doc: LooperState;
+  samplesAsFloats: Map<number, Float32Array>;
+  playhead: number;
+}
+
 export interface LooperState {
   layers: Layer[];
 }
@@ -28,5 +34,5 @@ export type MessageToWorklet =
 export type MessageFromWorklet =
   | { event: 'started recording'; frameOffset: number }
   | { event: 'finished recording'; layer: LayerNoSamples; samples: ArrayBuffer }
-  | { event: 'playhead moved'; value: number | null }
+  | { event: 'playhead moved'; value: number }
   | { event: 'debug'; payload: any };

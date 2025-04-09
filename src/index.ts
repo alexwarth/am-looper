@@ -4,6 +4,7 @@ import * as ui from './ui';
 
 // not a real error -- see https://v3.vitejs.dev/guide/assets.html
 import workletUrl from './worklet.ts?url';
+import { MessageFromWorklet, UiState } from './types';
 
 const context = new AudioContext({
   latencyHint: 'balanced',
@@ -13,16 +14,30 @@ const context = new AudioContext({
 await context.audioWorklet.addModule(workletUrl);
 const looper = makeLooper();
 await audio.init(context, looper);
-ui.init(looper);
+
+const state: UiState = {
+  doc: { layers: [] },
+  samplesAsFloats: new Map(),
+  playhead: 0,
+};
+
+ui.init(looper, state);
 
 function makeLooper() {
   const looper = new AudioWorkletNode(context, 'looper');
   looper.port.onmessage = (msg) => {
-    console.log('worklet:', msg.data);
-  };
-  looper.onprocessorerror = (e) => {
-    console.error('worklet error:', e);
-    throw new Error(e.message);
+    const m = msg.data as MessageFromWorklet;
+    switch (m.event) {
+      case 'playhead moved':
+        state.playhead = m.value;
+        break;
+      case 'finished recording':
+        state.doc.layers.push({ ...m.layer, samples: new Uint8Array(m.samples) });
+        state.samplesAsFloats.set(m.layer.id, new Float32Array(m.samples));
+        break;
+      default:
+        console.log('worklet:', m);
+    }
   };
   return looper;
 }
