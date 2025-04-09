@@ -1,5 +1,6 @@
 import { NUM_FRAMES_PER_CHUNK } from './constants';
-import { Layer, LayerNoSamples, MessageFromWorklet, MessageToWorklet } from './types';
+import { getLengthInFrames } from './helpers';
+import { LayerNoSamples, MessageFromWorklet, MessageToWorklet } from './types';
 
 const MAX_FRAMES_PER_CHANNEL = 1_000_000 * NUM_FRAMES_PER_CHUNK;
 
@@ -13,21 +14,6 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
   constructor() {
     super();
     this.port.onmessage = (msg: MessageEvent<MessageToWorklet>) => this.onMessage(msg.data);
-  }
-
-  get lengthInFrames() {
-    if (this.layers.length === 0) {
-      return null;
-    }
-
-    // In single-user mode, every layer will have the same lengthInFrames.
-    // But if two or more clients both *think* that they're recording the first
-    // layer, we'll end up with layers w/ different values for lengthInFrames.
-    let length = this.layers[0].lengthInFrames;
-    for (let layer of this.layers) {
-      length = Math.max(length, layer.lengthInFrames);
-    }
-    return length;
   }
 
   sendMessage(msg: MessageFromWorklet, transferObjects: Transferable[] = []) {
@@ -68,7 +54,7 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
     console.log('start recording!');
     this.recordingLayer = {
       id: Math.random(),
-      lengthInFrames: this.lengthInFrames ?? -1,
+      lengthInFrames: getLengthInFrames(this.layers) ?? -1,
       frameOffset: this.playhead,
       numChannels: 1,
       numFramesRecorded: 0,
@@ -187,11 +173,12 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
   advancePlayhead() {
     if (this.playhead === null) {
       throw new Error('called advancePlayhead() w/ null playhead');
-    } else if (this.lengthInFrames === null) {
-      return;
     }
 
-    this.movePlayhead((this.playhead + 1) % this.lengthInFrames);
+    const lengthInFrames = getLengthInFrames(this.layers);
+    if (lengthInFrames !== null) {
+      this.movePlayhead((this.playhead + 1) % lengthInFrames);
+    }
   }
 
   lastTimePlayheadMovedSent = 0;
