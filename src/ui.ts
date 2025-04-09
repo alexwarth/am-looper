@@ -20,7 +20,7 @@ export function init(_looper: AudioWorkletNode, _state: UiState) {
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
 
-// resize handling
+// --- resize handling ---
 
 updateCanvasSize();
 
@@ -82,7 +82,7 @@ function onSpace() {
   displayRecordingHelp();
 }
 
-// UI-related info for each layer
+// --- UI-related info for each layer ---
 
 interface AddlLayerInfo {
   maxAmplitudesInChunks: number[];
@@ -129,7 +129,7 @@ function getAddlInfo(layer: Layer) {
   return addlInfo;
 }
 
-// rendering
+// --- rendering ---
 
 function render() {
   ctx.clearRect(0, 0, innerWidth, innerHeight);
@@ -223,7 +223,7 @@ function displayRecordingHelp() {
   }
 }
 
-// statuses
+// --- statuses ---
 
 let status = '';
 let statusColor = 'cornflowerblue';
@@ -247,7 +247,7 @@ function renderStatus() {
   ctx.fillText(status, ctx.canvas.width - 50 - statusWidth, ctx.canvas.height - 80);
 }
 
-// logs
+// --- logs ---
 
 type LoggedLinePart = { color: string; text: string } | string;
 type LoggedLine = LoggedLinePart[];
