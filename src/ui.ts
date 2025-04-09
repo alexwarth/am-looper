@@ -26,7 +26,7 @@ export function init(
   onFrame();
 
   window.addEventListener('pointerdown', (e) =>
-    onPointerDown(e.x / devicePixelRatio, e.y / devicePixelRatio),
+    onPointerDown(e.x / devicePixelRatio, e.y / devicePixelRatio, e),
   );
 
   window.addEventListener('pointermove', (e) =>
@@ -103,14 +103,20 @@ function onSpace() {
 
 const pointerPos = { x: 0, y: 0 };
 
-function onPointerDown(x: number, y: number) {
+function onPointerDown(x: number, y: number, e: PointerEvent) {
   const id = getLayerAtPointer();
   if (id) {
     changeSharedState((state) => {
-      for (let l of state.layers) {
-        if (l.id === id) {
-          l.muted = !l.muted;
+      const idx = state.layers.findIndex((l) => l.id === id);
+      if (idx < 0) {
+        // ignore
+      } else if (e.metaKey) {
+        if (idx >= 0) {
+          state.layers.splice(idx, 1);
         }
+      } else {
+        const l = state.layers[idx];
+        l.muted = !l.muted;
       }
     });
   }
