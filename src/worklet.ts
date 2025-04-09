@@ -16,7 +16,18 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
   }
 
   get lengthInFrames() {
-    return this.layers.length > 0 ? this.layers[0].lengthInFrames : null;
+    if (this.layers.length === 0) {
+      return null;
+    }
+
+    // In single-user mode, every layer will have the same lengthInFrames.
+    // But if two or more clients both *think* that they're recording the first
+    // layer, we'll end up with layers w/ different values for lengthInFrames.
+    let length = this.layers[0].lengthInFrames;
+    for (let layer of this.layers) {
+      length = Math.max(length, layer.lengthInFrames);
+    }
+    return length;
   }
 
   sendMessage(msg: MessageFromWorklet, transferObjects: Transferable[] = []) {
