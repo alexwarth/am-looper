@@ -1,13 +1,22 @@
+// TODO: clean up the mess that I made w/ devicePixelRatio
+// (I want pointer coordinates to match up with screen coordinates)
+
 import { NUM_FRAMES_PER_CHUNK } from './constants';
-import { getLengthInFrames } from './helpers';
-import { Layer, UiState } from './types';
+import { distance, getLengthInFrames } from './helpers';
+import { Layer, LayerNoSamples, LooperState, Position, UiState } from './types';
 
 let looper: AudioWorkletNode;
 let state: UiState;
+let changeSharedState: (fn: (state: LooperState) => void) => void;
 
-export function init(_looper: AudioWorkletNode, _state: UiState) {
+export function init(
+  _looper: AudioWorkletNode,
+  _state: UiState,
+  _changeSharedState: (fn: (state: LooperState) => void) => void,
+) {
   looper = _looper;
   state = _state;
+  changeSharedState = _changeSharedState;
   displayRecordingHelp();
 
   function onFrame() {
@@ -15,6 +24,14 @@ export function init(_looper: AudioWorkletNode, _state: UiState) {
     requestAnimationFrame(onFrame);
   }
   onFrame();
+
+  window.addEventListener('pointerdown', (e) =>
+    onPointerDown(e.x / devicePixelRatio, e.y / devicePixelRatio),
+  );
+
+  window.addEventListener('pointermove', (e) =>
+    onPointerMove(e.x / devicePixelRatio, e.y / devicePixelRatio),
+  );
 }
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -82,12 +99,47 @@ function onSpace() {
   displayRecordingHelp();
 }
 
+// --- mouse controls ---
+
+const pointerPos = { x: 0, y: 0 };
+
+function onPointerDown(x: number, y: number) {
+  const id = getLayerAtPointer();
+  if (id) {
+    changeSharedState((state) => {
+      for (let l of state.layers) {
+        if (l.id === id) {
+          l.muted = !l.muted;
+        }
+      }
+    });
+  }
+}
+
+function onPointerMove(x: number, y: number) {
+  pointerPos.x = x;
+  pointerPos.y = y;
+}
+
+function getLayerAtPointer() {
+  let id: number | null = null;
+  let minDist = Infinity;
+  for (const l of state.shared.layers) {
+    const dist = distance(pointerPos, getAddlInfo(l).gainNubbinCenterPosition);
+    if (dist <= MAX_GAIN_NUBBIN_RADIUS / devicePixelRatio && dist < minDist) {
+      id = l.id;
+      minDist = dist;
+    }
+  }
+  return id;
+}
+
 // --- UI-related info for each layer ---
 
 interface AddlLayerInfo {
   maxAmplitudesInChunks: number[];
   maxAmplitudeInLayer: number;
-  gainNubbinCenterPosition: { x: number; y: number };
+  gainNubbinCenterPosition: Position;
   topY: number;
   bottomY: number;
 }

@@ -1,3 +1,8 @@
+export interface Position {
+  x: number;
+  y: number;
+}
+
 export interface UiState {
   shared: LooperState;
   samplesAsFloats: Map<number, Float32Array>;

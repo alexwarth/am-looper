@@ -4,7 +4,7 @@ import * as ui from './ui';
 
 // not a real error -- see https://v3.vitejs.dev/guide/assets.html
 import workletUrl from './worklet.ts?url';
-import { MessageFromWorklet, UiState } from './types';
+import { LooperState, MessageFromWorklet, MessageToWorklet, UiState } from './types';
 
 const context = new AudioContext({
   latencyHint: 'balanced',
@@ -21,7 +21,7 @@ const state: UiState = {
   playhead: 0,
 };
 
-ui.init(looper, state);
+ui.init(looper, state, changeSharedState);
 
 function makeLooper() {
   const looper = new AudioWorkletNode(context, 'looper');
@@ -40,4 +40,13 @@ function makeLooper() {
     }
   };
   return looper;
+}
+
+function changeSharedState(fn: (state: LooperState) => void) {
+  fn(state.shared);
+  sendToWorklet({ command: 'update layers', layers: state.shared.layers });
+}
+
+function sendToWorklet(msg: MessageToWorklet) {
+  looper.port.postMessage(msg);
 }
