@@ -35,8 +35,14 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
       case 'stop recording':
         this.stopRecording();
         break;
+      case 'update layers':
+        this.updateLayers(msg.layers);
+        break;
+      case 'set layer samples':
+        this.setLayerSamples(msg.id, new Float32Array(msg.samples));
+        break;
       default:
-        console.log('unsupported message', msg);
+        console.error('unsupported message', msg);
         throw new Error('unsupported message!');
     }
   }
@@ -86,6 +92,16 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
     ]);
     this.layers.push(this.recordingLayer);
     this.recordingLayer = null;
+  }
+
+  updateLayers(newLayers: LayerNoSamples[]) {
+    console.log('update layers');
+    this.layers = newLayers;
+  }
+
+  setLayerSamples(id: number, samples: Float32Array) {
+    console.log('set layer samples');
+    this.samplesByLayerId.set(id, samples);
   }
 
   process([input]: Float32Array[][], [output]: Float32Array[][], _parameters: any) {

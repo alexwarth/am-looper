@@ -28,8 +28,8 @@ export type MessageToWorklet =
   | { command: 'set latency offset'; value: number }
   | { command: 'start recording' }
   | { command: 'stop recording' }
-  | { command: 'update layers'; loops: LayerNoSamples[] }
-  | { command: 'set layer samples'; layerId: number; samples: Float32Array };
+  | { command: 'update layers'; layers: LayerNoSamples[] }
+  | { command: 'set layer samples'; id: number; samples: Float32Array };
 
 export type MessageFromWorklet =
   | { event: 'started recording'; frameOffset: number }
