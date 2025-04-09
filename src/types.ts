@@ -13,7 +13,7 @@ export interface LayerNoSamples {
   lengthInFrames: number;
   frameOffset: number;
   numChannels: number;
-  numSamplesRecorded: number;
+  numFramesRecorded: number;
   muted: boolean;
   gain: number;
 }
@@ -27,6 +27,6 @@ export type MessageToWorklet =
 
 export type MessageFromWorklet =
   | { event: 'started recording'; frameOffset: number }
-  | { event: 'finished recording'; layer: Layer }
+  | { event: 'finished recording'; layer: LayerNoSamples; samples: ArrayBuffer }
   | { event: 'playhead moved'; value: number | null }
   | { event: 'debug'; payload: any };
