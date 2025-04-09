@@ -112,7 +112,9 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
         this.recordFrame(input, frameIdx);
       }
       for (const l of this.layers) {
-        this.mixFrameInto(l, output, frameIdx);
+        if (!l.muted) {
+          this.mixFrameInto(l, output, frameIdx);
+        }
       }
       this.advancePlayhead();
     }
