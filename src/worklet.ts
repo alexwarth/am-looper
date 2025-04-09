@@ -75,7 +75,7 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
       // this is the first layer we've recorded, so it determines the length of the loop
       this.recordingLayer.lengthInFrames = this.recordingLayer.numFramesRecorded;
     }
-    if (this.layers.length === 1) {
+    if (this.layers.length === 0) {
       this.movePlayhead(this.latencyOffsetInChunks * NUM_FRAMES_PER_CHUNK);
     }
     const samples = this.samplesByLayerId
