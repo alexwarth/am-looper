@@ -36,7 +36,7 @@ function makeLooper() {
         state.samplesAsFloats.set(m.layer.id, new Float32Array(m.samples));
         break;
       default:
-        console.log('worklet:', m);
+        console.info('worklet:', m);
     }
   };
   return looper;
