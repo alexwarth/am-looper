@@ -34,6 +34,15 @@ export function init(
   );
 }
 
+function changeLayer(id: number, fn: (layer: Layer) => void) {
+  changeSharedState((state) => {
+    const layer = state.layers.find((layer) => layer.id === id);
+    if (layer) {
+      fn(layer);
+    }
+  });
+}
+
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
 
@@ -65,22 +74,26 @@ let spaceIsDown = false;
 
 window.addEventListener('keydown', (e) => {
   switch (e.key) {
-    case ' ': {
+    case ' ':
       if (!spaceIsDown) {
         spaceIsDown = true;
         onSpace();
       }
       break;
-    }
+    case 'Shift':
+      onShift('down');
+      break;
   }
 });
 
 window.addEventListener('keyup', (e) => {
   switch (e.key) {
-    case ' ': {
+    case ' ':
       spaceIsDown = false;
       break;
-    }
+    case 'Shift':
+      onShift('up');
+      break;
   }
 });
 
@@ -97,6 +110,24 @@ function onSpace() {
     displayStatus('●', 'red');
   }
   displayRecordingHelp();
+}
+
+let gainChangeLayerInfo: { id: number; origGain: number; origPos: Position } | null = null;
+
+function onShift(shift: 'down' | 'up') {
+  if (shift === 'up') {
+    gainChangeLayerInfo = null;
+    return;
+  }
+
+  const id = getLayerAtPointer();
+  if (id === null) {
+    gainChangeLayerInfo = null;
+    return;
+  }
+
+  const layer = state.shared.layers.find((layer) => layer.id === id)!;
+  gainChangeLayerInfo = { id, origGain: layer?.gain, origPos: { ...pointerPos } };
 }
 
 // --- mouse controls ---
@@ -125,6 +156,15 @@ function onPointerDown(x: number, y: number, e: PointerEvent) {
 function onPointerMove(x: number, y: number) {
   pointerPos.x = x;
   pointerPos.y = y;
+  if (gainChangeLayerInfo === null) {
+    return;
+  }
+
+  const { id, origPos, origGain } = gainChangeLayerInfo;
+  changeLayer(id, (layer) => {
+    const change = -(pointerPos.y - origPos.y);
+    layer.gain = Math.max(0, Math.min(origGain + change / MAX_GAIN_NUBBIN_RADIUS, 1));
+  });
 }
 
 function getLayerAtPointer() {
