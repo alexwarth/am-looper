@@ -8,6 +8,7 @@ let state: UiState;
 export function init(_looper: AudioWorkletNode, _state: UiState) {
   looper = _looper;
   state = _state;
+  displayRecordingHelp();
 
   function onFrame() {
     render();
@@ -70,9 +71,21 @@ function onSpace() {
   if (recording) {
     looper.port.postMessage({ command: 'stop recording' });
     recording = false;
+    displayStatus('■', '#888');
   } else {
     looper.port.postMessage({ command: 'start recording' });
     recording = true;
+    displayStatus('●', 'red');
+  }
+  displayRecordingHelp();
+}
+
+function displayRecordingHelp() {
+  clearLogs();
+  if (recording) {
+    log({ color: '#888', text: '■' }, ' space');
+  } else {
+    log({ color: 'red', text: '●' }, ' space');
   }
 }
 
@@ -124,6 +137,8 @@ function getAddlInfo(layer: Layer) {
 function render() {
   ctx.clearRect(0, 0, innerWidth, innerHeight);
   renderLayers();
+  renderLogs();
+  renderStatus();
 }
 
 const LAYER_HEIGHT_IN_PIXELS = 32;
@@ -200,4 +215,58 @@ function renderLayers() {
   ctx.moveTo(playheadX, 0);
   ctx.lineTo(playheadX, top);
   ctx.stroke();
+}
+
+// statuses
+
+let status = '';
+let statusColor = 'cornflowerblue';
+let statusClearTimeMillis = 0;
+
+function displayStatus(newStatus: string, color = 'cornflowerblue', timeMillis = 3_000) {
+  status = newStatus;
+  statusColor = color;
+  statusClearTimeMillis = Date.now() + timeMillis;
+  setTimeout(() => {
+    if (Date.now() >= statusClearTimeMillis) {
+      status = '';
+    }
+  }, timeMillis);
+}
+
+function renderStatus() {
+  ctx.font = '40px Monaco';
+  ctx.fillStyle = statusColor;
+  const statusWidth = ctx.measureText(status).width;
+  ctx.fillText(status, ctx.canvas.width - 50 - statusWidth, ctx.canvas.height - 80);
+}
+
+// logs
+
+type LoggedLinePart = { color: string; text: string } | string;
+type LoggedLine = LoggedLinePart[];
+const logs: LoggedLine[] = [];
+
+function log(...line: LoggedLinePart[]) {
+  logs.push(line);
+}
+
+function clearLogs() {
+  logs.length = 0;
+}
+
+function renderLogs() {
+  ctx.font = '20px Monaco';
+  let y = (ctx.canvas.height - 40) / devicePixelRatio;
+  const x0 = 40;
+  for (const line of logs) {
+    let x = x0;
+    for (const part of line) {
+      const text = typeof part === 'string' ? part : part.text;
+      ctx.fillStyle = typeof part === 'string' ? 'black' : part.color;
+      ctx.fillText(text, x, y);
+      x += ctx.measureText(text).width;
+    }
+    y -= 25;
+  }
 }
