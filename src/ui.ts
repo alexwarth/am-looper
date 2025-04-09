@@ -20,6 +20,8 @@ export function init(_looper: AudioWorkletNode, _state: UiState) {
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d')!;
 
+// resize handling
+
 updateCanvasSize();
 
 function updateCanvasSize() {
@@ -80,14 +82,7 @@ function onSpace() {
   displayRecordingHelp();
 }
 
-function displayRecordingHelp() {
-  clearLogs();
-  if (recording) {
-    log({ color: '#888', text: '■' }, ' space');
-  } else {
-    log({ color: 'red', text: '●' }, ' space');
-  }
-}
+// UI-related info for each layer
 
 interface AddlLayerInfo {
   maxAmplitudesInChunks: number[];
@@ -133,6 +128,8 @@ function getAddlInfo(layer: Layer) {
   addlLayerInfoById.set(layer.id, addlInfo);
   return addlInfo;
 }
+
+// rendering
 
 function render() {
   ctx.clearRect(0, 0, innerWidth, innerHeight);
@@ -215,6 +212,15 @@ function renderLayers() {
   ctx.moveTo(playheadX, 0);
   ctx.lineTo(playheadX, top);
   ctx.stroke();
+}
+
+function displayRecordingHelp() {
+  clearLogs();
+  if (recording) {
+    log({ color: '#888', text: '■' }, ' space');
+  } else {
+    log({ color: 'red', text: '●' }, ' space');
+  }
 }
 
 // statuses
