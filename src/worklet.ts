@@ -61,7 +61,7 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
     this.recordingLayer = {
       id: Math.random(),
       lengthInFrames: getLengthInFrames(this.layers) ?? -1,
-      frameOffset: this.playhead,
+      frameOffset: this.playhead - this.latencyOffsetInChunks * NUM_FRAMES_PER_CHUNK,
       numChannels: 1,
       numFramesRecorded: 0,
       muted: false,
