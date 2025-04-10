@@ -3,7 +3,7 @@
 
 import { NUM_FRAMES_PER_CHUNK } from './constants';
 import { distance, getLengthInFrames } from './helpers';
-import { Layer, LayerNoSamples, LooperState, Position, UiState } from './types';
+import { Layer, LayerNoSamples, LooperState, MessageFromWorklet, Position, UiState } from './types';
 
 let looper: AudioWorkletNode;
 let state: UiState;
@@ -19,19 +19,43 @@ export function init(
   changeSharedState = _changeSharedState;
   displayRecordingHelp();
 
+  looper.port.onmessage = (msg) => onMessage(msg.data);
+
   function onFrame() {
     render();
     requestAnimationFrame(onFrame);
   }
   onFrame();
 
+  // keyboard
+  window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('keydown', onKeyUp);
+
+  // mouse
   window.addEventListener('pointerdown', (e) =>
     onPointerDown(e.x / devicePixelRatio, e.y / devicePixelRatio, e),
   );
-
   window.addEventListener('pointermove', (e) =>
     onPointerMove(e.x / devicePixelRatio, e.y / devicePixelRatio),
   );
+}
+
+function onMessage(m: MessageFromWorklet) {
+  switch (m.event) {
+    case 'playhead moved':
+      state.playhead = m.value;
+      break;
+    case 'finished recording':
+      state.shared.layers.push({ ...m.layer, samples: new Uint8Array(m.samples) });
+      state.samplesAsFloats.set(m.layer.id, new Float32Array(m.samples));
+      break;
+    case 'changed latency offset':
+      console.log('new latency offset', m.value);
+      displayStatus(`latency offset = ${m.value}`);
+      break;
+    default:
+      console.info('worklet:', m);
+  }
 }
 
 function changeLayer(id: number, fn: (layer: Layer) => void) {
@@ -72,7 +96,7 @@ window.addEventListener('resize', updateCanvasSize);
 
 let spaceIsDown = false;
 
-window.addEventListener('keydown', (e) => {
+function onKeyDown(e: KeyboardEvent) {
   switch (e.key) {
     case ' ':
       if (!spaceIsDown) {
@@ -83,10 +107,16 @@ window.addEventListener('keydown', (e) => {
     case 'Shift':
       onShift('down');
       break;
+    case 'ArrowUp':
+      changeLatencyOffsetBy(1);
+      break;
+    case 'ArrowDown':
+      changeLatencyOffsetBy(-1);
+      break;
   }
-});
+}
 
-window.addEventListener('keyup', (e) => {
+function onKeyUp(e: KeyboardEvent) {
   switch (e.key) {
     case ' ':
       spaceIsDown = false;
@@ -95,7 +125,7 @@ window.addEventListener('keyup', (e) => {
       onShift('up');
       break;
   }
-});
+}
 
 let recording = false;
 
@@ -128,6 +158,10 @@ function onShift(shift: 'down' | 'up') {
 
   const layer = state.shared.layers.find((layer) => layer.id === id)!;
   gainChangeLayerInfo = { id, origGain: layer?.gain, origPos: { ...pointerPos } };
+}
+
+function changeLatencyOffsetBy(increment: number) {
+  looper.port.postMessage({ command: 'change latency offset', by: increment });
 }
 
 // --- mouse controls ---
@@ -339,10 +373,14 @@ function displayStatus(newStatus: string, color = 'cornflowerblue', timeMillis =
 }
 
 function renderStatus() {
-  ctx.font = '40px Monaco';
+  ctx.font = '20px Monaco';
   ctx.fillStyle = statusColor;
   const statusWidth = ctx.measureText(status).width;
-  ctx.fillText(status, ctx.canvas.width - 50 - statusWidth, ctx.canvas.height - 80);
+  ctx.fillText(
+    status,
+    (ctx.canvas.width - 50) / devicePixelRatio - statusWidth,
+    (ctx.canvas.height - 80) / devicePixelRatio,
+  );
 }
 
 // --- logs ---

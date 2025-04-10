@@ -25,20 +25,6 @@ ui.init(looper, state, changeSharedState);
 
 function makeLooper() {
   const looper = new AudioWorkletNode(context, 'looper');
-  looper.port.onmessage = (msg) => {
-    const m = msg.data as MessageFromWorklet;
-    switch (m.event) {
-      case 'playhead moved':
-        state.playhead = m.value;
-        break;
-      case 'finished recording':
-        state.shared.layers.push({ ...m.layer, samples: new Uint8Array(m.samples) });
-        state.samplesAsFloats.set(m.layer.id, new Float32Array(m.samples));
-        break;
-      default:
-        console.info('worklet:', m);
-    }
-  };
   return looper;
 }
 
