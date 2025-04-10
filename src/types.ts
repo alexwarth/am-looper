@@ -31,6 +31,7 @@ export interface LayerNoSamples {
 
 export type MessageToWorklet =
   | { command: 'set latency offset'; value: number }
+  | { command: 'change latency offset'; by: number }
   | { command: 'start recording' }
   | { command: 'stop recording' }
   | { command: 'update layers'; layers: LayerNoSamples[] }
@@ -40,4 +41,5 @@ export type MessageFromWorklet =
   | { event: 'started recording'; frameOffset: number }
   | { event: 'finished recording'; layer: LayerNoSamples; samples: ArrayBuffer }
   | { event: 'playhead moved'; value: number }
+  | { event: 'changed latency offset'; value: number }
   | { event: 'debug'; payload: any };

@@ -29,6 +29,9 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
       case 'set latency offset':
         this.setLatencyOffset(msg.value);
         break;
+      case 'change latency offset':
+        this.setLatencyOffset(this.latencyOffsetInChunks + msg.by);
+        break;
       case 'start recording':
         this.startRecording();
         break;
@@ -50,6 +53,7 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
   setLatencyOffset(newValue: number) {
     console.log('set latency offset', newValue);
     this.latencyOffsetInChunks = newValue;
+    this.sendMessage({ event: 'changed latency offset', value: this.latencyOffsetInChunks });
   }
 
   startRecording() {
