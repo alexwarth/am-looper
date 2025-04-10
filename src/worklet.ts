@@ -108,12 +108,20 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
     this.samplesByLayerId.set(id, samples);
   }
 
-  process([input]: Float32Array[][], [output]: Float32Array[][], _parameters: any) {
+  process(inputs: Float32Array[][], [output]: Float32Array[][], _parameters: any) {
+    const input = inputs[0];
     const numFrames = output[0].length;
     for (let frameIdx = 0; frameIdx < numFrames; frameIdx++) {
       if (this.recordingLayer) {
         this.mixFrameInto(this.recordingLayer, output, frameIdx);
-        this.recordFrame(input, frameIdx);
+        try {
+          this.recordFrame(input, frameIdx);
+        } catch (e) {
+          console.log('--- ⬇️⬇️⬇️ ---');
+          console.log(e);
+          console.log('inputs', inputs);
+          console.log('--- ⬆️⬆️⬆️ ---');
+        }
       }
       for (const l of this.layers) {
         if (!l.muted) {
