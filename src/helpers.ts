@@ -1,4 +1,4 @@
-import { LayerNoSamples, Position } from './types';
+import { Layer, LayerNoSamples, Position } from './types';
 
 export function getLengthInFrames(layers: LayerNoSamples[]) {
   if (layers.length === 0) {
@@ -13,6 +13,12 @@ export function getLengthInFrames(layers: LayerNoSamples[]) {
     length = Math.max(length, layer.lengthInFrames);
   }
   return length;
+}
+
+export function copyWithoutSamples(layer: Layer): LayerNoSamples {
+  const r = { ...layer };
+  delete (r as any).samples;
+  return r;
 }
 
 export function distance(p1: Position, p2: Position) {
