@@ -12,7 +12,7 @@ const context = new AudioContext({
 });
 
 await context.audioWorklet.addModule(workletUrl);
-const looper = makeLooper();
+const looper = new AudioWorkletNode(context, 'looper');
 await audio.init(context, looper);
 
 const state: UiState = {
@@ -22,11 +22,6 @@ const state: UiState = {
 };
 
 ui.init(looper, state, changeSharedState);
-
-function makeLooper() {
-  const looper = new AudioWorkletNode(context, 'looper');
-  return looper;
-}
 
 function changeSharedState(fn: (state: LooperState) => void) {
   fn(state.shared);
