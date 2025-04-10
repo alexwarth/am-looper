@@ -1,5 +1,3 @@
-import { SAMPLE_RATE } from './constants';
-
 export async function init(context: AudioContext, looper: AudioWorkletNode) {
   const deviceId = await selectDevice();
   const micStream = await navigator.mediaDevices.getUserMedia({
@@ -14,13 +12,7 @@ export async function init(context: AudioContext, looper: AudioWorkletNode) {
   context.resume();
   looper.connect(context.destination);
 
-  const totalLatencySecs = context.baseLatency + context.outputLatency;
-  const totalLatencyFrames = totalLatencySecs * SAMPLE_RATE;
-  const totalLatencyChunks = Math.ceil(totalLatencyFrames / 128);
-  console.log('totalLatencySecs', totalLatencySecs);
-  console.log('totalLatencyFrames', totalLatencyFrames);
-  console.log('totalLatencyChunks', totalLatencyChunks);
-  looper.port.postMessage({ command: 'set latency offset', value: totalLatencyChunks });
+  return deviceId;
 }
 
 async function selectDevice() {

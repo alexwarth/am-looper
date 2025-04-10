@@ -3,30 +3,37 @@
 
 import { NUM_FRAMES_PER_CHUNK } from './constants';
 import { distance, getLengthInFrames } from './helpers';
-import { Layer, LooperState, MessageFromWorklet, Position, UiState } from './types';
+import { loadPersistentState, changePersistentState } from './persistence';
+import {
+  Layer,
+  LooperState,
+  MessageFromWorklet,
+  MessageToWorklet,
+  Position,
+  UiState,
+} from './types';
 
 let looper: AudioWorkletNode;
+let inputDeviceId: string;
 let state: UiState;
 let changeSharedState: (fn: (state: LooperState) => void) => void;
 
 export function init(
   _looper: AudioWorkletNode,
+  _inputDeviceId: string,
   _state: UiState,
   _changeSharedState: (fn: (state: LooperState) => void) => void,
 ) {
   looper = _looper;
   (window as any).looper = looper;
+  inputDeviceId = _inputDeviceId;
   state = _state;
   changeSharedState = _changeSharedState;
-  displayRecordingHelp();
 
   looper.port.onmessage = (msg) => onMessage(msg.data);
 
-  function onFrame() {
-    render();
-    requestAnimationFrame(onFrame);
-  }
-  onFrame();
+  const latencyOffset = loadPersistentState().deviceSpecificLatencyOffset[inputDeviceId] ?? 20;
+  sendToWorklet({ command: 'set latency offset', value: latencyOffset });
 
   // keyboard
   window.addEventListener('keydown', onKeyDown);
@@ -39,6 +46,18 @@ export function init(
   window.addEventListener('pointermove', (e) =>
     onPointerMove(e.x / devicePixelRatio, e.y / devicePixelRatio),
   );
+
+  function onFrame() {
+    render();
+    requestAnimationFrame(onFrame);
+  }
+  onFrame();
+
+  displayRecordingHelp();
+}
+
+function sendToWorklet(m: MessageToWorklet) {
+  looper.port.postMessage(m);
 }
 
 function onMessage(m: MessageFromWorklet) {
@@ -53,8 +72,10 @@ function onMessage(m: MessageFromWorklet) {
       state.samplesAsFloats.set(m.layer.id, new Float32Array(m.samples));
       break;
     case 'changed latency offset':
-      console.log('new latency offset', m.value);
       displayStatus(`latency offset = ${m.value}`);
+      changePersistentState((state) => {
+        state.deviceSpecificLatencyOffset[inputDeviceId] = m.value;
+      });
       break;
     default:
       console.info('worklet:', m);
@@ -134,11 +155,11 @@ let recording = false;
 
 function onSpace() {
   if (recording) {
-    looper.port.postMessage({ command: 'stop recording' });
+    sendToWorklet({ command: 'stop recording' });
     recording = false;
     displayStatus('stopped recording', '#888');
   } else {
-    looper.port.postMessage({ command: 'start recording' });
+    sendToWorklet({ command: 'start recording' });
     recording = true;
     displayStatus('recording...', 'red');
   }
@@ -164,7 +185,7 @@ function onShift(shift: 'down' | 'up') {
 }
 
 function changeLatencyOffsetBy(increment: number) {
-  looper.port.postMessage({ command: 'change latency offset', by: increment });
+  sendToWorklet({ command: 'change latency offset', by: increment });
 }
 
 // --- mouse controls ---
