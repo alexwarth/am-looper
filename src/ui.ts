@@ -131,11 +131,11 @@ function onKeyDown(e: KeyboardEvent) {
     case 'Shift':
       onShift('down');
       break;
+    case 'Control':
+      onControl('down');
     case 'ArrowUp':
-      changeLatencyOffsetBy(1);
-      break;
     case 'ArrowDown':
-      changeLatencyOffsetBy(-1);
+      changeLatencyOffsetBy(e.key === 'ArrowUp' ? 1 : -1);
       break;
   }
 }
@@ -147,6 +147,9 @@ function onKeyUp(e: KeyboardEvent) {
       break;
     case 'Shift':
       onShift('up');
+      break;
+    case 'Control':
+      onControl('up');
       break;
   }
 }
@@ -181,7 +184,25 @@ function onShift(shift: 'down' | 'up') {
   }
 
   const layer = state.shared.layers.find((layer) => layer.id === id)!;
-  gainChangeLayerInfo = { id, origGain: layer?.gain, origPos: { ...pointerPos } };
+  gainChangeLayerInfo = { id, origGain: layer.gain, origPos: { ...pointerPos } };
+}
+
+let offsetChangeLayerInfo: { id: number; origOffset: number; origPos: Position } | null = null;
+
+function onControl(control: 'down' | 'up') {
+  if (control === 'up') {
+    offsetChangeLayerInfo = null;
+    return;
+  }
+
+  const id = getLayerAtPointer();
+  if (id === null) {
+    offsetChangeLayerInfo = null;
+    return;
+  }
+
+  const layer = state.shared.layers.find((layer) => layer.id === id)!;
+  offsetChangeLayerInfo = { id, origOffset: layer.frameOffset, origPos: { ...pointerPos } };
 }
 
 function changeLatencyOffsetBy(increment: number) {
@@ -214,15 +235,22 @@ function onPointerDown(x: number, y: number, e: PointerEvent) {
 function onPointerMove(x: number, y: number) {
   pointerPos.x = x;
   pointerPos.y = y;
-  if (gainChangeLayerInfo === null) {
-    return;
+
+  if (gainChangeLayerInfo !== null) {
+    const { id, origPos, origGain } = gainChangeLayerInfo;
+    changeLayer(id, (layer) => {
+      const change = -(pointerPos.y - origPos.y);
+      layer.gain = Math.max(0, Math.min(origGain + change / MAX_GAIN_NUBBIN_RADIUS, 1));
+    });
   }
 
-  const { id, origPos, origGain } = gainChangeLayerInfo;
-  changeLayer(id, (layer) => {
-    const change = -(pointerPos.y - origPos.y);
-    layer.gain = Math.max(0, Math.min(origGain + change / MAX_GAIN_NUBBIN_RADIUS, 1));
-  });
+  if (offsetChangeLayerInfo !== null) {
+    const { id, origPos, origOffset } = offsetChangeLayerInfo;
+    changeLayer(id, (layer) => {
+      const change = pointerPos.x - origPos.x;
+      layer.frameOffset = Math.round(origOffset + (change * devicePixelRatio) / pixelsPerFrame);
+    });
+  }
 }
 
 function getLayerAtPointer() {
@@ -284,7 +312,14 @@ function getAddlInfo(layer: Layer) {
 
 // --- rendering ---
 
+let lengthInFrames: number | null = null;
+let pixelsPerFrame = 1;
+
 function render() {
+  lengthInFrames = getLengthInFrames(state.shared.layers);
+  if (lengthInFrames !== null) {
+    pixelsPerFrame = (innerWidth - 2 * GAIN_NUBBIN_SPACING) / lengthInFrames;
+  }
   ctx.clearRect(0, 0, innerWidth, innerHeight);
   renderLayers();
   renderLogs();
@@ -296,13 +331,11 @@ const MAX_GAIN_NUBBIN_RADIUS = LAYER_HEIGHT_IN_PIXELS / 2;
 const GAIN_NUBBIN_SPACING = 100;
 
 function renderLayers() {
-  const layers = state.shared.layers;
-  const lengthInFrames = getLengthInFrames(layers);
   if (lengthInFrames === null) {
     return;
   }
 
-  const pixelsPerFrame = (innerWidth - 2 * GAIN_NUBBIN_SPACING) / lengthInFrames;
+  const layers = state.shared.layers;
   let top = 2 * LAYER_HEIGHT_IN_PIXELS;
   const x0 = GAIN_NUBBIN_SPACING;
   const x1 = x0 + lengthInFrames * pixelsPerFrame;
