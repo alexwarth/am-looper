@@ -139,7 +139,7 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
 
     const frameIdx = this.playhead % layer.lengthInFrames;
     for (let channel = 0; channel < output.length; channel++) {
-      output[channel][outputFrameIdx] += this.getSampleAt(layer, channel, frameIdx);
+      output[channel][outputFrameIdx] += layer.gain * this.getSampleAt(layer, channel, frameIdx);
     }
   }
 
