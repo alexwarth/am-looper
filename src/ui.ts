@@ -69,7 +69,6 @@ function onMessage(m: MessageFromWorklet) {
       changeSharedState((state) => {
         state.layers.push({ ...m.layer, samples: new Uint8Array(m.samples) });
       });
-      state.samplesAsFloats.set(m.layer.id, new Float32Array(m.samples));
       break;
     case 'changed latency offset':
       displayStatus(`latency offset = ${m.value}`);

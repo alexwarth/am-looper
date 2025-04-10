@@ -5,7 +5,6 @@ export interface Position {
 
 export interface UiState {
   shared: LooperState;
-  samplesAsFloats: Map<number, Float32Array>;
   playhead: number;
 }
 

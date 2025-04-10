@@ -16,11 +16,7 @@ const looper = new AudioWorkletNode(context, 'looper');
 const inputDeviceId = await audio.init(context, looper);
 
 const knownLayerIds = new Set<number>();
-const state: UiState = {
-  shared: { layers: [] },
-  samplesAsFloats: new Map(),
-  playhead: 0,
-};
+const state: UiState = { shared: { layers: [] }, playhead: 0 };
 
 ui.init(looper, inputDeviceId, state, changeSharedState);
 
