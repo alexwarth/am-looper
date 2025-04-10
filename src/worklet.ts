@@ -193,10 +193,6 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
   }
 
   advancePlayhead() {
-    if (this.playhead === null) {
-      throw new Error('called advancePlayhead() w/ null playhead');
-    }
-
     const lengthInFrames = getLengthInFrames(this.layers);
     if (lengthInFrames !== null) {
       this.movePlayhead((this.playhead + 1) % lengthInFrames);
