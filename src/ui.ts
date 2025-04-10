@@ -3,7 +3,7 @@
 
 import { NUM_FRAMES_PER_CHUNK } from './constants';
 import { distance, getLengthInFrames } from './helpers';
-import { Layer, LayerNoSamples, LooperState, MessageFromWorklet, Position, UiState } from './types';
+import { Layer, LooperState, MessageFromWorklet, Position, UiState } from './types';
 
 let looper: AudioWorkletNode;
 let state: UiState;
