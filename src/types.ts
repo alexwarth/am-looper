@@ -24,6 +24,7 @@ export interface LayerNoSamples {
   frameOffset: number;
   numChannels: number;
   numFramesRecorded: number;
+  soloed: boolean;
   muted: boolean;
   gain: number;
 }

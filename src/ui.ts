@@ -134,6 +134,9 @@ function onKeyDown(e: KeyboardEvent) {
     case 'm':
       toggleMuted();
       break;
+    case 's':
+      toggleSoloed();
+      break;
     case 'Shift':
       onShift('down');
       break;
@@ -193,6 +196,12 @@ function toggleMuted() {
   });
 }
 
+function toggleSoloed() {
+  changeLayer(getLayerAtPointer(), (layer) => {
+    layer.soloed = !layer.soloed;
+  });
+}
+
 let gainChangeLayerInfo: { id: number; origGain: number; origPos: Position } | null = null;
 
 function onShift(shift: 'down' | 'up') {
@@ -245,7 +254,7 @@ function onPointerMove(x: number, y: number) {
     const { id, origPos, origGain } = gainChangeLayerInfo;
     changeLayer(id, (layer) => {
       const change = -(pointerPos.y - origPos.y);
-      layer.gain = Math.max(0, Math.min(origGain + change / MAX_GAIN_NUBBIN_RADIUS, 1));
+      layer.gain = Math.max(0, Math.min(origGain + change / MAX_GAIN_NUBBIN_RADIUS, 2));
     });
   }
 
@@ -349,30 +358,30 @@ function renderLayers() {
     const addlInfo = getAddlInfo(layer);
     const alpha = layer.muted ? 0.25 : 1;
     let maxY = top;
+
+    // draw samples
+    const rgb = layer.soloed ? `50, 75, 117` : `100, 149, 237`;
+    const sampleColor = `rgba(${rgb}, ${alpha})`;
+    ctx.strokeStyle = sampleColor;
+    ctx.lineWidth = NUM_FRAMES_PER_CHUNK * pixelsPerFrame;
     for (let rep = 0; rep < layer.numFramesRecorded / lengthInFrames; rep++) {
       let y = top;
-
-      // draw samples
       let x = x0 + ((layer.frameOffset + lengthInFrames) % lengthInFrames) * pixelsPerFrame;
       for (let chunkIdx = 0; chunkIdx < addlInfo.maxAmplitudesInChunks.length; chunkIdx++) {
         if (x >= x1) {
           x = x0;
           y += LAYER_HEIGHT_IN_PIXELS;
         }
-
-        ctx.lineWidth = NUM_FRAMES_PER_CHUNK * pixelsPerFrame;
-        ctx.strokeStyle = `rgba(100, 149, 237, ${alpha})`;
-        ctx.beginPath();
         const amplitude =
           ((addlInfo.maxAmplitudesInChunks[chunkIdx] / addlInfo.maxAmplitudeInLayer) *
             LAYER_HEIGHT_IN_PIXELS) /
           2;
+        ctx.beginPath();
         ctx.moveTo(x, y - amplitude / 2);
         ctx.lineTo(x, y + amplitude / 2);
         ctx.stroke();
         x += NUM_FRAMES_PER_CHUNK * pixelsPerFrame;
       }
-
       maxY = y;
     }
 
@@ -387,7 +396,7 @@ function renderLayers() {
     addlInfo.bottomY = (maxY + LAYER_HEIGHT_IN_PIXELS / 2) / devicePixelRatio;
 
     // draw gain nubbin
-    ctx.fillStyle = `rgba(100, 149, 237, ${alpha / 4})`;
+    ctx.fillStyle = `rgba(${rgb}, ${alpha / 4})`;
     ctx.beginPath();
     ctx.arc(centerX, centerY, layer.gain * MAX_GAIN_NUBBIN_RADIUS, 0, 2 * Math.PI);
     ctx.fill();

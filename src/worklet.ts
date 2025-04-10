@@ -68,6 +68,7 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
       frameOffset: this.playhead - this.latencyOffsetInChunks * NUM_FRAMES_PER_CHUNK,
       numChannels: 1,
       numFramesRecorded: 0,
+      soloed: false,
       muted: false,
       gain: 1,
     };
@@ -111,9 +112,17 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
   process(inputs: Float32Array[][], [output]: Float32Array[][], _parameters: any) {
     const input = inputs[0];
     const numFrames = output[0].length;
+    const noLayersAreSoloed = !this.layers.some((layer) => layer.soloed);
     for (let frameIdx = 0; frameIdx < numFrames; frameIdx++) {
+      for (const l of this.layers) {
+        if (l.soloed || (!l.muted && noLayersAreSoloed)) {
+          this.mixFrameInto(l, output, frameIdx);
+        }
+      }
       if (this.recordingLayer) {
-        this.mixFrameInto(this.recordingLayer, output, frameIdx);
+        if (noLayersAreSoloed) {
+          this.mixFrameInto(this.recordingLayer, output, frameIdx);
+        }
         try {
           this.recordFrame(input, frameIdx);
         } catch (e) {
@@ -121,11 +130,6 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
           console.log(e);
           console.log('inputs', inputs);
           console.log('--- ⬆️⬆️⬆️ ---');
-        }
-      }
-      for (const l of this.layers) {
-        if (!l.muted) {
-          this.mixFrameInto(l, output, frameIdx);
         }
       }
       this.advancePlayhead();
