@@ -46,7 +46,9 @@ function onMessage(m: MessageFromWorklet) {
       state.playhead = m.value;
       break;
     case 'finished recording':
-      state.shared.layers.push({ ...m.layer, samples: new Uint8Array(m.samples) });
+      changeSharedState((state) => {
+        state.layers.push({ ...m.layer, samples: new Uint8Array(m.samples) });
+      });
       state.samplesAsFloats.set(m.layer.id, new Float32Array(m.samples));
       break;
     case 'changed latency offset':
