@@ -2,7 +2,7 @@
 // (I want pointer coordinates to match up with screen coordinates)
 
 import { NUM_FRAMES_PER_CHUNK } from './constants';
-import { distance, getLengthInFrames } from './helpers';
+import { getLengthInFrames } from './helpers';
 import { loadPersistentState, changePersistentState } from './persistence';
 import {
   Layer,
@@ -226,16 +226,13 @@ function onPointerMove(x: number, y: number) {
 }
 
 function getLayerAtPointer() {
-  let id: number | null = null;
-  let minDist = Infinity;
   for (const l of state.shared.layers) {
-    const dist = distance(pointerPos, getAddlInfo(l).gainNubbinCenterPosition);
-    if (dist <= MAX_GAIN_NUBBIN_RADIUS / devicePixelRatio && dist < minDist) {
-      id = l.id;
-      minDist = dist;
+    const { topY, bottomY } = getAddlInfo(l);
+    if (topY <= pointerPos.y && pointerPos.y <= bottomY) {
+      return l.id;
     }
   }
-  return id;
+  return null;
 }
 
 // --- UI-related info for each layer ---
@@ -348,8 +345,8 @@ function renderLayers() {
       x: centerX / devicePixelRatio,
       y: centerY / devicePixelRatio,
     };
-    addlInfo.topY = top / devicePixelRatio;
-    addlInfo.bottomY = maxY / devicePixelRatio;
+    addlInfo.topY = (top - LAYER_HEIGHT_IN_PIXELS / 2) / devicePixelRatio;
+    addlInfo.bottomY = (maxY + LAYER_HEIGHT_IN_PIXELS / 2) / devicePixelRatio;
 
     // draw gain nubbin
     ctx.fillStyle = `rgba(100, 149, 237, ${alpha / 4})`;
