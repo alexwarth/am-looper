@@ -4,7 +4,7 @@ import * as audio from './audio';
 import * as ui from './ui';
 
 // not a real error -- see https://v3.vitejs.dev/guide/assets.html
-import workletUrl from './worklet.ts?url';
+import workletUrl from './worklet.ts?worker&url';
 
 const context = new AudioContext({
   latencyHint: 'balanced',
