@@ -29,7 +29,7 @@ export function init(
 
   // keyboard
   window.addEventListener('keydown', onKeyDown);
-  window.addEventListener('keydown', onKeyUp);
+  window.addEventListener('keyup', onKeyUp);
 
   // mouse
   window.addEventListener('pointerdown', (e) =>
