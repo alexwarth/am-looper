@@ -15,6 +15,7 @@ export function init(
   _changeSharedState: (fn: (state: LooperState) => void) => void,
 ) {
   looper = _looper;
+  (window as any).looper = looper;
   state = _state;
   changeSharedState = _changeSharedState;
   displayRecordingHelp();
@@ -135,11 +136,11 @@ function onSpace() {
   if (recording) {
     looper.port.postMessage({ command: 'stop recording' });
     recording = false;
-    displayStatus('■', '#888');
+    displayStatus('stopped recording', '#888');
   } else {
     looper.port.postMessage({ command: 'start recording' });
     recording = true;
-    displayStatus('●', 'red');
+    displayStatus('recording...', 'red');
   }
   displayRecordingHelp();
 }
@@ -380,8 +381,8 @@ function renderStatus() {
   const statusWidth = ctx.measureText(status).width;
   ctx.fillText(
     status,
-    (ctx.canvas.width - 50) / devicePixelRatio - statusWidth,
-    (ctx.canvas.height - 80) / devicePixelRatio,
+    ctx.canvas.width / devicePixelRatio - 40 - statusWidth,
+    (ctx.canvas.height - 40) / devicePixelRatio,
   );
 }
 
