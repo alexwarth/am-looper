@@ -40,9 +40,6 @@ export function init(
   window.addEventListener('keyup', onKeyUp);
 
   // mouse
-  window.addEventListener('pointerdown', (e) =>
-    onPointerDown(e.x / devicePixelRatio, e.y / devicePixelRatio, e),
-  );
   window.addEventListener('pointermove', (e) =>
     onPointerMove(e.x / devicePixelRatio, e.y / devicePixelRatio),
   );
@@ -81,7 +78,11 @@ function onMessage(m: MessageFromWorklet) {
   }
 }
 
-function changeLayer(id: number, fn: (layer: Layer) => void) {
+function changeLayer(id: number | null, fn: (layer: Layer) => void) {
+  if (id === null) {
+    return;
+  }
+
   changeSharedState((state) => {
     const layer = state.layers.find((layer) => layer.id === id);
     if (layer) {
@@ -124,8 +125,14 @@ function onKeyDown(e: KeyboardEvent) {
     case ' ':
       if (!spaceIsDown) {
         spaceIsDown = true;
-        onSpace();
+        toggleRecording();
       }
+      break;
+    case 'Backspace':
+      deleteLayer();
+      break;
+    case 'm':
+      toggleMuted();
       break;
     case 'Shift':
       onShift('down');
@@ -155,7 +162,7 @@ function onKeyUp(e: KeyboardEvent) {
 
 let recording = false;
 
-function onSpace() {
+function toggleRecording() {
   if (recording) {
     sendToWorklet({ command: 'stop recording' });
     recording = false;
@@ -166,6 +173,24 @@ function onSpace() {
     displayStatus('recording...', 'red');
   }
   displayRecordingHelp();
+}
+
+function deleteLayer() {
+  const id = getLayerAtPointer();
+  if (id !== null) {
+    changeSharedState((state) => {
+      const idx = state.layers.findIndex((layer) => layer.id === id);
+      if (idx >= 0) {
+        state.layers.splice(idx, 1);
+      }
+    });
+  }
+}
+
+function toggleMuted() {
+  changeLayer(getLayerAtPointer(), (layer) => {
+    layer.muted = !layer.muted;
+  });
 }
 
 let gainChangeLayerInfo: { id: number; origGain: number; origPos: Position } | null = null;
@@ -211,25 +236,6 @@ function changeLatencyOffsetBy(increment: number) {
 // --- mouse controls ---
 
 const pointerPos = { x: 0, y: 0 };
-
-function onPointerDown(x: number, y: number, e: PointerEvent) {
-  const id = getLayerAtPointer();
-  if (id) {
-    changeSharedState((state) => {
-      const idx = state.layers.findIndex((l) => l.id === id);
-      if (idx < 0) {
-        // ignore
-      } else if (e.metaKey) {
-        if (idx >= 0) {
-          state.layers.splice(idx, 1);
-        }
-      } else {
-        const l = state.layers[idx];
-        l.muted = !l.muted;
-      }
-    });
-  }
-}
 
 function onPointerMove(x: number, y: number) {
   pointerPos.x = x;
