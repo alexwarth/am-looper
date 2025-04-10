@@ -1,4 +1,4 @@
-import { Layer, LayerNoSamples, Position } from './types';
+import { Layer, LayerNoSamples } from './types';
 
 export function getLengthInFrames(layers: LayerNoSamples[]) {
   if (layers.length === 0) {
