@@ -40,8 +40,14 @@ export function init(
   window.addEventListener('keyup', onKeyUp);
 
   // mouse
+  window.addEventListener('pointerdown', (e) =>
+    onPointerDown(e.x / devicePixelRatio, e.y / devicePixelRatio),
+  );
   window.addEventListener('pointermove', (e) =>
     onPointerMove(e.x / devicePixelRatio, e.y / devicePixelRatio),
+  );
+  window.addEventListener('pointerup', (e) =>
+    onPointerUp(e.x / devicePixelRatio, e.y / devicePixelRatio),
   );
 
   function onFrame() {
@@ -280,10 +286,26 @@ function changeLatencyOffsetBy(increment: number) {
 // --- mouse controls ---
 
 const pointerPos = { x: 0, y: 0 };
+let movingPlayhead = false;
+
+function onPointerDown(x: number, y: number) {
+  if (lengthInFrames !== null) {
+    movingPlayhead = true;
+    movePlayhead();
+  }
+}
+
+function onPointerUp(x: number, y: number) {
+  movingPlayhead = false;
+}
 
 function onPointerMove(x: number, y: number) {
   pointerPos.x = x;
   pointerPos.y = y;
+
+  if (movingPlayhead) {
+    movePlayhead();
+  }
 
   if (changingMasterGain) {
     setMasterGain();
@@ -304,6 +326,22 @@ function onPointerMove(x: number, y: number) {
       layer.frameOffset = Math.round(origOffset + (change * devicePixelRatio) / pixelsPerFrame);
     });
   }
+}
+
+function movePlayhead() {
+  // const have = pointerPos.x - GAIN_NUBBIN_SPACING / devicePixelRatio;
+  // const total = (innerWidth - 2 * GAIN_NUBBIN_SPACING) / devicePixelRatio;
+  // const pct = (have / total) * 100;
+  // const playheadX = GAIN_NUBBIN_SPACING + state.playhead * pixelsPerFrame;
+  const frameIdx = Math.max(
+    0,
+    Math.min(
+      Math.round((pointerPos.x - GAIN_NUBBIN_SPACING / devicePixelRatio) / pixelsPerFrame) *
+        devicePixelRatio,
+      lengthInFrames! - 1,
+    ),
+  );
+  sendToWorklet({ command: 'move playhead', value: frameIdx });
 }
 
 function setMasterGain() {
@@ -456,7 +494,7 @@ function renderLayers() {
   ctx.strokeStyle = '#999';
   ctx.lineWidth = 4;
   ctx.beginPath();
-  ctx.moveTo(playheadX, 0);
+  ctx.moveTo(playheadX, layerHeightInPixels);
   ctx.lineTo(playheadX, top);
   ctx.stroke();
 }

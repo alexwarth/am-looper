@@ -40,13 +40,18 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
         this.stopRecording();
         break;
       case 'update layers':
-        this.updateLayers(msg.layers);
+        console.log('update layers');
+        this.layers = msg.layers;
         break;
       case 'set layer samples':
-        this.setLayerSamples(msg.id, new Float32Array(msg.samples));
+        console.log('set layer samples');
+        this.samplesByLayerId.set(msg.id, new Float32Array(msg.samples));
         break;
       case 'set master gain':
-        this.setMasterGain(msg.value);
+        this.masterGain = msg.value;
+        break;
+      case 'move playhead':
+        this.movePlayhead(msg.value, true);
         break;
       default:
         console.error('unsupported message', msg);
@@ -99,20 +104,6 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
     ]);
     this.layers.push(this.recordingLayer);
     this.recordingLayer = null;
-  }
-
-  updateLayers(newLayers: LayerNoSamples[]) {
-    console.log('update layers');
-    this.layers = newLayers;
-  }
-
-  setLayerSamples(id: number, samples: Float32Array) {
-    console.log('set layer samples');
-    this.samplesByLayerId.set(id, samples);
-  }
-
-  setMasterGain(value: number) {
-    this.masterGain = value;
   }
 
   process(inputs: Float32Array[][], [output]: Float32Array[][], _parameters: any) {
@@ -222,11 +213,11 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
   }
 
   lastTimePlayheadMovedSent = 0;
-  movePlayhead(newValue: number) {
+  movePlayhead(newValue: number, forceNotify = false) {
     this.playhead = newValue;
 
     const now = Date.now();
-    if (this.playhead === 0 || now - this.lastTimePlayheadMovedSent > 16) {
+    if (this.playhead === 0 || forceNotify || now - this.lastTimePlayheadMovedSent > 16) {
       this.sendMessage({ event: 'playhead moved', value: this.playhead });
       this.lastTimePlayheadMovedSent = now;
     }

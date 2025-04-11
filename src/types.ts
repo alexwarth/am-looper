@@ -38,7 +38,8 @@ export type MessageToWorklet =
   | { command: 'stop recording' }
   | { command: 'update layers'; layers: LayerNoSamples[] }
   | { command: 'set layer samples'; id: number; samples: Float32Array }
-  | { command: 'set master gain'; value: number };
+  | { command: 'set master gain'; value: number }
+  | { command: 'move playhead'; value: number };
 
 export type MessageFromWorklet =
   | { event: 'started recording'; frameOffset: number }
