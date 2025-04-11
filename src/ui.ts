@@ -159,6 +159,9 @@ function onKeyDown(e: KeyboardEvent) {
     case 'ArrowDown':
       changeLatencyOffsetBy(e.key === 'ArrowUp' ? 1 : -1);
       break;
+    case 'h':
+      toggleFullHelp();
+      break;
   }
 }
 
@@ -497,11 +500,12 @@ function renderLayers() {
 
 function displayRecordingHelp() {
   clearLogs();
-  if (recording) {
-    log({ color: '#888', text: '■' }, ' space');
-  } else {
-    log({ color: 'red', text: '●' }, ' space');
-  }
+  log(
+    { color: 'cornflowerblue', text: 'space' },
+    ' to ',
+    recording ? { color: '#888', text: '■' } : { color: 'red', text: '●' },
+  );
+  log({ color: 'cornflowerblue', text: 'h' }, ' for help');
 }
 
 function renderMasterGainSlider() {
@@ -551,7 +555,7 @@ type LoggedLine = LoggedLinePart[];
 const logs: LoggedLine[] = [];
 
 function log(...line: LoggedLinePart[]) {
-  logs.push(line);
+  logs.unshift(line);
 }
 
 function clearLogs() {
@@ -571,5 +575,44 @@ function renderLogs() {
       x += ctx.measureText(text).width;
     }
     y -= 25;
+  }
+}
+
+// --- help ---
+
+let displayingFullHelp = false;
+
+function toggleFullHelp() {
+  if (displayingFullHelp) {
+    displayRecordingHelp();
+  } else {
+    displayFullHelp();
+  }
+  displayingFullHelp = !displayingFullHelp;
+}
+
+function displayFullHelp() {
+  clearLogs();
+  log('To start recording a new layer, press ', b('SPACE'), '.');
+  log('To stop recording, press ', b('SPACE'), ' again.');
+  log('');
+  log('If you point at a layer,');
+  log('- hold ', b('SHIFT'), ' and move mouse left/right to slide layer in time');
+  log(
+    '- hold ',
+    b('CONTROL'),
+    " and move mouse up/down to change the layer's gain (louder/softer)",
+  );
+  log('- press ', b('BACKSPACE'), ' to delete the layer');
+  log('- press ', b('M'), ' to toggle mute');
+  log('- press ', b('S'), ' to toggle solo');
+  log('- press ', b('B'), ' to toggle backwards');
+  log('- press ', b('D'), ' to duplicate the layer');
+  log('');
+  log('The blue bar at the right margin is the master volume slider.');
+  log('Point at it, hold down ', b('CONTROL'), ' and move mouse up/down to adjust it.');
+
+  function b(text: string) {
+    return { color: 'cornflowerblue', text };
   }
 }
