@@ -307,6 +307,12 @@ const pointerPos = { x: 0, y: 0 };
 let movingPlayhead = false;
 
 function onPointerDown(e: PointerEvent) {
+  // hack so that I can test it on my iPad
+  if (e.y >= innerHeight - BOTTOM_MARGIN_FOR_TEXT) {
+    toggleRecording();
+    return;
+  }
+
   if (lengthInFrames !== null) {
     movingPlayhead = true;
     movePlayhead();
