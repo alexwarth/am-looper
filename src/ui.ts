@@ -501,11 +501,11 @@ function renderLayers() {
 function displayRecordingHelp() {
   clearLogs();
   log(
-    { color: 'cornflowerblue', text: 'space' },
+    { color: 'cornflowerblue', text: 'SPACE' },
     ' to ',
     recording ? { color: '#888', text: '■' } : { color: 'red', text: '●' },
   );
-  log({ color: 'cornflowerblue', text: 'h' }, ' for help');
+  log({ color: 'cornflowerblue', text: 'H' }, ' for help');
 }
 
 function renderMasterGainSlider() {
@@ -611,6 +611,11 @@ function displayFullHelp() {
   log('');
   log('The blue bar at the right margin is the master volume slider.');
   log('Point at it, hold down ', b('CONTROL'), ' and move mouse up/down to adjust it.');
+  log();
+  log('Press ', b('UP'), '/', b('DOWN'), ' to adjust the latency offset.');
+  log('(The right setting depends on your input device and computer -- see what works best!)');
+  log();
+  log('Press ', b('H'), ' to make this help go away.');
 
   function b(text: string) {
     return { color: 'cornflowerblue', text };
