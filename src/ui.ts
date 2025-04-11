@@ -341,7 +341,6 @@ function setMasterGain() {
 function getLayerAtPointer() {
   for (const l of state.shared.layers) {
     const { topY, bottomY } = getAddlInfo(l);
-    console.log('is', pointerPos.y, 'between', topY, 'and', bottomY);
     if (topY <= pointerPos.y && pointerPos.y <= bottomY) {
       return l.id;
     }
