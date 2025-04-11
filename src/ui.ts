@@ -1,6 +1,3 @@
-// TODO: clean up the mess that I made w/ devicePixelRatio
-// (I want pointer coordinates to match up with screen coordinates)
-
 import { NUM_FRAMES_PER_CHUNK } from './constants';
 import { getLengthInFrames } from './helpers';
 import { loadPersistentState, changePersistentState } from './persistence';
@@ -40,15 +37,9 @@ export function init(
   window.addEventListener('keyup', onKeyUp);
 
   // mouse
-  window.addEventListener('pointerdown', (e) =>
-    onPointerDown(e.x / devicePixelRatio, e.y / devicePixelRatio),
-  );
-  window.addEventListener('pointermove', (e) =>
-    onPointerMove(e.x / devicePixelRatio, e.y / devicePixelRatio),
-  );
-  window.addEventListener('pointerup', (e) =>
-    onPointerUp(e.x / devicePixelRatio, e.y / devicePixelRatio),
-  );
+  window.addEventListener('pointerdown', onPointerDown);
+  window.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointerup', onPointerUp);
 
   function onFrame() {
     render();
@@ -248,7 +239,7 @@ function onControl(control: 'down' | 'up') {
     return;
   }
 
-  if (pointerPos.x >= (innerWidth - MASTER_GAIN_SLIDER_WIDTH) / devicePixelRatio) {
+  if (pointerPos.x >= innerWidth - MASTER_GAIN_SLIDER_WIDTH) {
     changingMasterGain = true;
     setMasterGain();
     return;
@@ -291,20 +282,20 @@ function changeLatencyOffsetBy(increment: number) {
 const pointerPos = { x: 0, y: 0 };
 let movingPlayhead = false;
 
-function onPointerDown(x: number, y: number) {
+function onPointerDown(e: PointerEvent) {
   if (lengthInFrames !== null) {
     movingPlayhead = true;
     movePlayhead();
   }
 }
 
-function onPointerUp(x: number, y: number) {
+function onPointerUp(e: PointerEvent) {
   movingPlayhead = false;
 }
 
-function onPointerMove(x: number, y: number) {
-  pointerPos.x = x;
-  pointerPos.y = y;
+function onPointerMove(e: PointerEvent) {
+  pointerPos.x = e.x;
+  pointerPos.y = e.y;
 
   if (movingPlayhead) {
     movePlayhead();
@@ -326,7 +317,7 @@ function onPointerMove(x: number, y: number) {
     const { id, origPos, origOffset } = offsetChangeLayerInfo;
     changeLayer(id, (layer) => {
       const change = pointerPos.x - origPos.x;
-      layer.frameOffset = Math.round(origOffset + (change * devicePixelRatio) / pixelsPerFrame);
+      layer.frameOffset = Math.round(origOffset + change / pixelsPerFrame);
     });
   }
 }
@@ -335,8 +326,7 @@ function movePlayhead() {
   const frameIdx = Math.max(
     0,
     Math.min(
-      Math.round((pointerPos.x - GAIN_NUBBIN_SPACING / devicePixelRatio) / pixelsPerFrame) *
-        devicePixelRatio,
+      Math.round((pointerPos.x - GAIN_NUBBIN_SPACING) / pixelsPerFrame),
       lengthInFrames! - 1,
     ),
   );
@@ -344,13 +334,14 @@ function movePlayhead() {
 }
 
 function setMasterGain() {
-  state.masterGain = (innerHeight - pointerPos.y * devicePixelRatio) / innerHeight;
+  state.masterGain = (innerHeight - pointerPos.y) / innerHeight;
   sendToWorklet({ command: 'set master gain', value: state.masterGain });
 }
 
 function getLayerAtPointer() {
   for (const l of state.shared.layers) {
     const { topY, bottomY } = getAddlInfo(l);
+    console.log('is', pointerPos.y, 'between', topY, 'and', bottomY);
     if (topY <= pointerPos.y && pointerPos.y <= bottomY) {
       return l.id;
     }
@@ -417,13 +408,14 @@ let layerHeightInPixels = 32;
 let unitGainNubbinRadius = layerHeightInPixels / 2;
 
 function render() {
-  layerHeightInPixels = LAYER_HEIGHT_IN_PIXELS; // TODO: calculate this based on the layers
+  ctx.clearRect(0, 0, innerWidth, innerHeight);
+  // TODO: calculate this based on the layers: how many are there? how tall is each?
+  layerHeightInPixels = LAYER_HEIGHT_IN_PIXELS;
   unitGainNubbinRadius = Math.ceil(layerHeightInPixels / 2);
   lengthInFrames = getLengthInFrames(state.shared.layers);
   if (lengthInFrames !== null) {
     pixelsPerFrame = (innerWidth - 2 * GAIN_NUBBIN_SPACING) / lengthInFrames;
   }
-  ctx.clearRect(0, 0, innerWidth, innerHeight);
   renderLayers();
   renderMasterGainSlider();
   renderLogs();
@@ -472,12 +464,9 @@ function renderLayers() {
     const centerX = GAIN_NUBBIN_SPACING / 2;
     const centerY = (top + y) / 2;
 
-    addlInfo.gainNubbinCenterPosition = {
-      x: centerX / devicePixelRatio,
-      y: centerY / devicePixelRatio,
-    };
-    addlInfo.topY = (top - layerHeightInPixels / 2) / devicePixelRatio;
-    addlInfo.bottomY = (y + layerHeightInPixels / 2) / devicePixelRatio;
+    addlInfo.gainNubbinCenterPosition = { x: centerX, y: centerY };
+    addlInfo.topY = top - layerHeightInPixels / 2;
+    addlInfo.bottomY = y + layerHeightInPixels / 2;
 
     // draw gain nubbin
     ctx.fillStyle = `rgba(${rgb}, ${alpha / 4})`;
@@ -541,11 +530,7 @@ function renderStatus() {
   ctx.font = '20px Monaco';
   ctx.fillStyle = statusColor;
   const statusWidth = ctx.measureText(status).width;
-  ctx.fillText(
-    status,
-    ctx.canvas.width / devicePixelRatio - 40 - statusWidth,
-    (ctx.canvas.height - 40) / devicePixelRatio,
-  );
+  ctx.fillText(status, innerWidth - 40 - statusWidth, innerHeight - 40);
 }
 
 // --- logs ---
@@ -564,7 +549,7 @@ function clearLogs() {
 
 function renderLogs() {
   ctx.font = '20px Monaco';
-  let y = (ctx.canvas.height - 40) / devicePixelRatio;
+  let y = innerHeight - 40;
   const x0 = 40;
   for (const line of logs) {
     let x = x0;

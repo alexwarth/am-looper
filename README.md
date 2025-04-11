@@ -30,7 +30,6 @@ It takes some trial and error to find the right setting for you input device and
 
 # TODO
 
-- Clean up the mess that I made with `devicePixelRatio`
 - Fix bug that's preventing me from using different input devices
 - Experiment w/ web audio's built-in echo cancellation for no-headphones operation
 - Really think about the UI
