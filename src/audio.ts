@@ -8,6 +8,7 @@ export async function init(context: AudioContext, looper: AudioWorkletNode) {
     },
   });
   const mic = context.createMediaStreamSource(micStream);
+  console.log('input stream', mic);
   mic.connect(looper).connect(context.destination);
   context.resume();
   looper.connect(context.destination);
