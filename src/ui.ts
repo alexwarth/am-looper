@@ -131,7 +131,7 @@ function onKeyDown(e: KeyboardEvent) {
     case 'Backspace':
       deleteLayer();
       break;
-    case '2':
+    case 'd':
       duplicateLayer();
       break;
     case 'm':
@@ -221,8 +221,8 @@ function toggleSoloed() {
 
 let gainChangeLayerInfo: { id: number; origGain: number; origPos: Position } | null = null;
 
-function onShift(shift: 'down' | 'up') {
-  if (shift === 'up') {
+function onControl(control: 'down' | 'up') {
+  if (control === 'up') {
     gainChangeLayerInfo = null;
     return;
   }
@@ -239,8 +239,8 @@ function onShift(shift: 'down' | 'up') {
 
 let offsetChangeLayerInfo: { id: number; origOffset: number; origPos: Position } | null = null;
 
-function onControl(control: 'down' | 'up') {
-  if (control === 'up') {
+function onShift(shift: 'down' | 'up') {
+  if (shift === 'up') {
     offsetChangeLayerInfo = null;
     return;
   }
