@@ -271,7 +271,7 @@ function onPointerMove(x: number, y: number) {
     const { id, origPos, origGain } = gainChangeLayerInfo;
     changeLayer(id, (layer) => {
       const change = -(pointerPos.y - origPos.y);
-      layer.gain = Math.max(0, Math.min(origGain + change / MAX_GAIN_NUBBIN_RADIUS, 2));
+      layer.gain = Math.max(0, Math.min(origGain + change / maxGainNubbinRadius, 2));
     });
   }
 
@@ -343,10 +343,24 @@ function getAddlInfo(layer: Layer) {
 
 // --- rendering ---
 
+const GAIN_NUBBIN_SPACING = 100;
+const MIN_LAYER_HEIGHT_IN_PIXELS = 20;
+const MAX_LAYER_HEIGHT_IN_PIXELS = 60;
+
 let lengthInFrames: number | null = null;
 let pixelsPerFrame = 1;
+let layerHeightInPixels = 32;
+let maxGainNubbinRadius = layerHeightInPixels / 2;
 
 function render() {
+  layerHeightInPixels = Math.max(
+    MIN_LAYER_HEIGHT_IN_PIXELS,
+    Math.min(
+      Math.ceil(canvas.height / devicePixelRatio / state.shared.layers.length / 1.5),
+      MAX_LAYER_HEIGHT_IN_PIXELS,
+    ),
+  );
+  maxGainNubbinRadius = Math.ceil(layerHeightInPixels / 2);
   lengthInFrames = getLengthInFrames(state.shared.layers);
   if (lengthInFrames !== null) {
     pixelsPerFrame = (innerWidth - 2 * GAIN_NUBBIN_SPACING) / lengthInFrames;
@@ -357,17 +371,13 @@ function render() {
   renderStatus();
 }
 
-const LAYER_HEIGHT_IN_PIXELS = 32;
-const MAX_GAIN_NUBBIN_RADIUS = LAYER_HEIGHT_IN_PIXELS / 2;
-const GAIN_NUBBIN_SPACING = 100;
-
 function renderLayers() {
   if (lengthInFrames === null) {
     return;
   }
 
   const layers = state.shared.layers;
-  let top = 2 * LAYER_HEIGHT_IN_PIXELS;
+  let top = 2 * layerHeightInPixels;
   const x0 = GAIN_NUBBIN_SPACING;
   const x1 = x0 + lengthInFrames * pixelsPerFrame;
   for (let idx = 0; idx < layers.length; idx++) {
@@ -387,11 +397,11 @@ function renderLayers() {
       for (let chunkIdx = 0; chunkIdx < addlInfo.maxAmplitudesInChunks.length; chunkIdx++) {
         if (x >= x1) {
           x = x0;
-          y += LAYER_HEIGHT_IN_PIXELS;
+          y += layerHeightInPixels;
         }
         const amplitude =
           ((addlInfo.maxAmplitudesInChunks[chunkIdx] / addlInfo.maxAmplitudeInLayer) *
-            LAYER_HEIGHT_IN_PIXELS) /
+            layerHeightInPixels) /
           2;
         ctx.beginPath();
         ctx.moveTo(x, y - amplitude / 2);
@@ -409,16 +419,16 @@ function renderLayers() {
       x: centerX / devicePixelRatio,
       y: centerY / devicePixelRatio,
     };
-    addlInfo.topY = (top - LAYER_HEIGHT_IN_PIXELS / 2) / devicePixelRatio;
-    addlInfo.bottomY = (maxY + LAYER_HEIGHT_IN_PIXELS / 2) / devicePixelRatio;
+    addlInfo.topY = (top - layerHeightInPixels / 2) / devicePixelRatio;
+    addlInfo.bottomY = (maxY + layerHeightInPixels / 2) / devicePixelRatio;
 
     // draw gain nubbin
     ctx.fillStyle = `rgba(${rgb}, ${alpha / 4})`;
     ctx.beginPath();
-    ctx.arc(centerX, centerY, layer.gain * MAX_GAIN_NUBBIN_RADIUS, 0, 2 * Math.PI);
+    ctx.arc(centerX, centerY, layer.gain * maxGainNubbinRadius, 0, 2 * Math.PI);
     ctx.fill();
 
-    top = maxY + LAYER_HEIGHT_IN_PIXELS * 1.15;
+    top = maxY + layerHeightInPixels * 1.15;
   }
 
   // draw playhead
