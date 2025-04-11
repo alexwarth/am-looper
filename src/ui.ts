@@ -85,7 +85,7 @@ function setChannelToRecord(channel: number) {
     state.channelToRecord[inputDeviceInfo.id] = channel;
   });
   sendToWorklet({ command: 'set channel to record', channel });
-  displayStatus(`channel to record = ${channel}`);
+  displayRecordingHelp();
 }
 
 function changeLayer(id: number | null, fn: (layer: Layer) => void) {
@@ -512,11 +512,17 @@ function renderLayers() {
 
 function displayRecordingHelp() {
   clearLogs();
-  log(
-    { color: 'cornflowerblue', text: 'SPACE' },
-    ' to ',
-    recording ? { color: '#888', text: '■' } : { color: 'red', text: '●' },
-  );
+  if (recording) {
+    log({ color: 'cornflowerblue', text: 'SPACE' }, ' to ', { color: '#888', text: '■' });
+  } else {
+    log(
+      { color: 'cornflowerblue', text: 'SPACE' },
+      ' to ',
+      { color: 'red', text: '●' },
+      ` channel ${channelToRecord}`,
+    );
+  }
+
   log({ color: 'cornflowerblue', text: 'H' }, ' for help');
 }
 
