@@ -42,7 +42,7 @@ const handle = await initDoc();
 handle.on('change', (payload) => onNewState(payload.doc));
 
 function onNewState(sharedState: LooperState) {
-  console.log('new state', sharedState);
+  // console.log('new state', sharedState);
   state.shared = sharedState;
   sendToWorklet({ command: 'update layers', layers: state.shared.layers.map(copyWithoutSamples) });
   sendNewLayerSamplesToWorklet();
