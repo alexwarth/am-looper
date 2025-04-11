@@ -271,7 +271,7 @@ function onPointerMove(x: number, y: number) {
     const { id, origPos, origGain } = gainChangeLayerInfo;
     changeLayer(id, (layer) => {
       const change = -(pointerPos.y - origPos.y);
-      layer.gain = Math.max(0, Math.min(origGain + change / maxGainNubbinRadius, 2));
+      layer.gain = Math.max(0, Math.min(origGain + change / unitGainNubbinRadius, 2));
     });
   }
 
@@ -344,23 +344,16 @@ function getAddlInfo(layer: Layer) {
 // --- rendering ---
 
 const GAIN_NUBBIN_SPACING = 100;
-const MIN_LAYER_HEIGHT_IN_PIXELS = 20;
-const MAX_LAYER_HEIGHT_IN_PIXELS = 60;
+const LAYER_HEIGHT_IN_PIXELS = 30;
 
 let lengthInFrames: number | null = null;
 let pixelsPerFrame = 1;
 let layerHeightInPixels = 32;
-let maxGainNubbinRadius = layerHeightInPixels / 2;
+let unitGainNubbinRadius = layerHeightInPixels / 2;
 
 function render() {
-  layerHeightInPixels = Math.max(
-    MIN_LAYER_HEIGHT_IN_PIXELS,
-    Math.min(
-      Math.ceil(canvas.height / devicePixelRatio / state.shared.layers.length / 1.5),
-      MAX_LAYER_HEIGHT_IN_PIXELS,
-    ),
-  );
-  maxGainNubbinRadius = Math.ceil(layerHeightInPixels / 2);
+  layerHeightInPixels = LAYER_HEIGHT_IN_PIXELS; // TODO: calculate this based on the layers
+  unitGainNubbinRadius = Math.ceil(layerHeightInPixels / 2);
   lengthInFrames = getLengthInFrames(state.shared.layers);
   if (lengthInFrames !== null) {
     pixelsPerFrame = (innerWidth - 2 * GAIN_NUBBIN_SPACING) / lengthInFrames;
@@ -426,7 +419,7 @@ function renderLayers() {
     // draw gain nubbin
     ctx.fillStyle = `rgba(${rgb}, ${alpha / 4})`;
     ctx.beginPath();
-    ctx.arc(centerX, centerY, layer.gain * maxGainNubbinRadius, 0, 2 * Math.PI);
+    ctx.arc(centerX, centerY, layer.gain * unitGainNubbinRadius, 0, 2 * Math.PI);
     ctx.fill();
 
     top = maxY + layerHeightInPixels * 1.15;
