@@ -427,7 +427,7 @@ function renderLayers() {
     return;
   }
 
-  let top = 2 * layerHeightInPixels;
+  let top = LAYER_HEIGHT_IN_PIXELS;
   const x0 = GAIN_NUBBIN_SPACING;
   const x1 = x0 + lengthInFrames * pixelsPerFrame;
   for (const layer of state.shared.layers) {
@@ -515,6 +515,9 @@ let status = '';
 let statusColor = 'cornflowerblue';
 let statusClearTimeMillis = 0;
 
+const LEFT_MARGIN_FOR_TEXT = 40;
+const BOTTOM_MARGIN_FOR_TEXT = 40;
+
 function displayStatus(newStatus: string, color = 'cornflowerblue', timeMillis = 3_000) {
   status = newStatus;
   statusColor = color;
@@ -530,7 +533,11 @@ function renderStatus() {
   ctx.font = '20px Monaco';
   ctx.fillStyle = statusColor;
   const statusWidth = ctx.measureText(status).width;
-  ctx.fillText(status, innerWidth - 40 - statusWidth, innerHeight - 40);
+  ctx.fillText(
+    status,
+    innerWidth - LEFT_MARGIN_FOR_TEXT - statusWidth,
+    innerHeight - BOTTOM_MARGIN_FOR_TEXT,
+  );
 }
 
 // --- logs ---
@@ -549,8 +556,8 @@ function clearLogs() {
 
 function renderLogs() {
   ctx.font = '20px Monaco';
-  let y = innerHeight - 40;
-  const x0 = 40;
+  let y = innerHeight - BOTTOM_MARGIN_FOR_TEXT;
+  const x0 = LEFT_MARGIN_FOR_TEXT;
   for (const line of logs) {
     let x = x0;
     for (const part of line) {
