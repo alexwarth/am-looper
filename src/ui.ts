@@ -400,9 +400,10 @@ function renderLayers() {
           y += layerHeightInPixels;
         }
         const amplitude =
-          ((addlInfo.maxAmplitudesInChunks[chunkIdx] / addlInfo.maxAmplitudeInLayer) *
+          (((addlInfo.maxAmplitudesInChunks[chunkIdx] / addlInfo.maxAmplitudeInLayer) *
             layerHeightInPixels) /
-          2;
+            2) *
+          layer.gain;
         ctx.beginPath();
         ctx.moveTo(x, y - amplitude / 2);
         ctx.lineTo(x, y + amplitude / 2);
