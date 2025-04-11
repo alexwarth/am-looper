@@ -4,7 +4,7 @@ export async function init(context: AudioContext, looper: AudioWorkletNode) {
     audio: {
       deviceId,
       autoGainControl: false,
-      echoCancellation: false,
+      echoCancellation: false, // TODO: try it, see how it affects latency?
     },
   });
   const mic = context.createMediaStreamSource(micStream);
