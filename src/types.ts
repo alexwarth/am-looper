@@ -6,6 +6,7 @@ export interface Position {
 export interface UiState {
   shared: LooperState;
   playhead: number;
+  masterGain: number;
 }
 
 export interface LooperState {
@@ -36,7 +37,8 @@ export type MessageToWorklet =
   | { command: 'start recording' }
   | { command: 'stop recording' }
   | { command: 'update layers'; layers: LayerNoSamples[] }
-  | { command: 'set layer samples'; id: number; samples: Float32Array };
+  | { command: 'set layer samples'; id: number; samples: Float32Array }
+  | { command: 'set master gain'; value: number };
 
 export type MessageFromWorklet =
   | { event: 'started recording'; frameOffset: number }

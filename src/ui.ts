@@ -148,6 +148,7 @@ function onKeyDown(e: KeyboardEvent) {
       break;
     case 'Control':
       onControl('down');
+      break;
     case 'ArrowUp':
     case 'ArrowDown':
       changeLatencyOffsetBy(e.key === 'ArrowUp' ? 1 : -1);
@@ -229,10 +230,18 @@ function toggleBackwards() {
 }
 
 let gainChangeLayerInfo: { id: number; origGain: number; origPos: Position } | null = null;
+let changingMasterGain = false;
 
 function onControl(control: 'down' | 'up') {
   if (control === 'up') {
+    changingMasterGain = false;
     gainChangeLayerInfo = null;
+    return;
+  }
+
+  if (pointerPos.x >= (innerWidth - MASTER_GAIN_SLIDER_WIDTH) / devicePixelRatio) {
+    changingMasterGain = true;
+    setMasterGain();
     return;
   }
 
@@ -276,6 +285,10 @@ function onPointerMove(x: number, y: number) {
   pointerPos.x = x;
   pointerPos.y = y;
 
+  if (changingMasterGain) {
+    setMasterGain();
+  }
+
   if (gainChangeLayerInfo !== null) {
     const { id, origPos, origGain } = gainChangeLayerInfo;
     changeLayer(id, (layer) => {
@@ -291,6 +304,11 @@ function onPointerMove(x: number, y: number) {
       layer.frameOffset = Math.round(origOffset + (change * devicePixelRatio) / pixelsPerFrame);
     });
   }
+}
+
+function setMasterGain() {
+  state.masterGain = (innerHeight - pointerPos.y * devicePixelRatio) / innerHeight;
+  sendToWorklet({ command: 'set master gain', value: state.masterGain });
 }
 
 function getLayerAtPointer() {
@@ -354,6 +372,7 @@ function getAddlInfo(layer: Layer) {
 
 const GAIN_NUBBIN_SPACING = 100;
 const LAYER_HEIGHT_IN_PIXELS = 30;
+const MASTER_GAIN_SLIDER_WIDTH = 10;
 
 let lengthInFrames: number | null = null;
 let pixelsPerFrame = 1;
@@ -369,6 +388,7 @@ function render() {
   }
   ctx.clearRect(0, 0, innerWidth, innerHeight);
   renderLayers();
+  renderMasterGainSlider();
   renderLogs();
   renderStatus();
 }
@@ -448,6 +468,18 @@ function displayRecordingHelp() {
   } else {
     log({ color: 'red', text: '●' }, ' space');
   }
+}
+
+function renderMasterGainSlider() {
+  const height = state.masterGain * innerHeight;
+  ctx.fillStyle = 'rgba(100, 149, 237, .25)';
+  ctx.fillRect(
+    innerWidth - MASTER_GAIN_SLIDER_WIDTH,
+    innerHeight - height,
+    MASTER_GAIN_SLIDER_WIDTH,
+    height,
+  );
+  ctx.fill();
 }
 
 // --- statuses ---

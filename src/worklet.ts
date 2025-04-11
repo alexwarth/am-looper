@@ -9,6 +9,7 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
   layers: LayerNoSamples[] = [];
   recordingLayer: LayerNoSamples | null = null;
   playhead = 0;
+  masterGain = 1;
   latencyOffsetInChunks = 0;
 
   constructor() {
@@ -43,6 +44,9 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
         break;
       case 'set layer samples':
         this.setLayerSamples(msg.id, new Float32Array(msg.samples));
+        break;
+      case 'set master gain':
+        this.setMasterGain(msg.value);
         break;
       default:
         console.error('unsupported message', msg);
@@ -107,6 +111,10 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
     this.samplesByLayerId.set(id, samples);
   }
 
+  setMasterGain(value: number) {
+    this.masterGain = value;
+  }
+
   process(inputs: Float32Array[][], [output]: Float32Array[][], _parameters: any) {
     const input = inputs[0];
     const numFrames = output[0].length;
@@ -130,6 +138,9 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
         if (l.soloed || (!l.muted && noLayersAreSoloed)) {
           this.mixFrameInto(l, output, frameIdx);
         }
+      }
+      for (let ch = 0; ch < output.length; ch++) {
+        output[ch][frameIdx] *= this.masterGain;
       }
       this.advancePlayhead();
     }
