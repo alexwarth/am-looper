@@ -122,6 +122,7 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
           console.log(e);
           console.log('inputs', inputs);
           console.log('--- ⬆️⬆️⬆️ ---');
+          throw e;
         }
       }
       for (const l of this.layers) {
