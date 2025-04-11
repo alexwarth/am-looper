@@ -51,7 +51,6 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
   }
 
   setLatencyOffset(newValue: number) {
-    console.log('set latency offset', newValue);
     this.latencyOffsetInChunks = newValue;
     this.sendMessage({ event: 'changed latency offset', value: this.latencyOffsetInChunks });
   }
@@ -61,7 +60,6 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
       return;
     }
 
-    console.log('start recording!');
     this.recordingLayer = {
       id: Math.random(),
       lengthInFrames: getLengthInFrames(this.layers) ?? -1,
@@ -81,7 +79,6 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
       return;
     }
 
-    console.log('stop recording');
     if (this.recordingLayer.lengthInFrames < 0) {
       // this is the first layer we've recorded, so it determines the length of the loop
       this.recordingLayer.lengthInFrames = this.recordingLayer.numFramesRecorded;
@@ -114,11 +111,6 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
     const numFrames = output[0].length;
     const noLayersAreSoloed = !this.layers.some((layer) => layer.soloed);
     for (let frameIdx = 0; frameIdx < numFrames; frameIdx++) {
-      for (const l of this.layers) {
-        if (l.soloed || (!l.muted && noLayersAreSoloed)) {
-          this.mixFrameInto(l, output, frameIdx);
-        }
-      }
       if (this.recordingLayer) {
         if (noLayersAreSoloed) {
           this.mixFrameInto(this.recordingLayer, output, frameIdx);
@@ -130,6 +122,11 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
           console.log(e);
           console.log('inputs', inputs);
           console.log('--- ⬆️⬆️⬆️ ---');
+        }
+      }
+      for (const l of this.layers) {
+        if (l.soloed || (!l.muted && noLayersAreSoloed)) {
+          this.mixFrameInto(l, output, frameIdx);
         }
       }
       this.advancePlayhead();
