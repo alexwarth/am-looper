@@ -329,10 +329,6 @@ function onPointerMove(x: number, y: number) {
 }
 
 function movePlayhead() {
-  // const have = pointerPos.x - GAIN_NUBBIN_SPACING / devicePixelRatio;
-  // const total = (innerWidth - 2 * GAIN_NUBBIN_SPACING) / devicePixelRatio;
-  // const pct = (have / total) * 100;
-  // const playheadX = GAIN_NUBBIN_SPACING + state.playhead * pixelsPerFrame;
   const frameIdx = Math.max(
     0,
     Math.min(
