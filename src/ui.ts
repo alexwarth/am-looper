@@ -134,11 +134,14 @@ function onKeyDown(e: KeyboardEvent) {
     case 'd':
       duplicateLayer();
       break;
+    case 's':
+      toggleSoloed();
+      break;
     case 'm':
       toggleMuted();
       break;
-    case 's':
-      toggleSoloed();
+    case 'b':
+      toggleBackwards();
       break;
     case 'Shift':
       onShift('down');
@@ -207,15 +210,21 @@ function duplicateLayer() {
   }
 }
 
+function toggleSoloed() {
+  changeLayer(getLayerAtPointer(), (layer) => {
+    layer.soloed = !layer.soloed;
+  });
+}
+
 function toggleMuted() {
   changeLayer(getLayerAtPointer(), (layer) => {
     layer.muted = !layer.muted;
   });
 }
 
-function toggleSoloed() {
+function toggleBackwards() {
   changeLayer(getLayerAtPointer(), (layer) => {
-    layer.soloed = !layer.soloed;
+    layer.backwards = !layer.backwards;
   });
 }
 
@@ -369,52 +378,49 @@ function renderLayers() {
     return;
   }
 
-  const layers = state.shared.layers;
   let top = 2 * layerHeightInPixels;
   const x0 = GAIN_NUBBIN_SPACING;
   const x1 = x0 + lengthInFrames * pixelsPerFrame;
-  for (let idx = 0; idx < layers.length; idx++) {
-    const layer = layers[idx];
+  for (const layer of state.shared.layers) {
     const addlInfo = getAddlInfo(layer);
     const alpha = layer.muted ? 0.25 : 1;
-    let maxY = top;
 
     // draw samples
     const rgb = layer.soloed ? `50, 75, 117` : `100, 149, 237`;
     const sampleColor = `rgba(${rgb}, ${alpha})`;
     ctx.strokeStyle = sampleColor;
     ctx.lineWidth = NUM_FRAMES_PER_CHUNK * pixelsPerFrame;
-    for (let rep = 0; rep < layer.numFramesRecorded / lengthInFrames; rep++) {
-      let y = top;
-      let x = x0 + ((layer.frameOffset + lengthInFrames) % lengthInFrames) * pixelsPerFrame;
-      for (let chunkIdx = 0; chunkIdx < addlInfo.maxAmplitudesInChunks.length; chunkIdx++) {
-        if (x >= x1) {
-          x = x0;
-          y += layerHeightInPixels;
-        }
-        const amplitude =
-          (((addlInfo.maxAmplitudesInChunks[chunkIdx] / addlInfo.maxAmplitudeInLayer) *
-            layerHeightInPixels) /
-            2) *
-          layer.gain;
-        ctx.beginPath();
-        ctx.moveTo(x, y - amplitude / 2);
-        ctx.lineTo(x, y + amplitude / 2);
-        ctx.stroke();
-        x += NUM_FRAMES_PER_CHUNK * pixelsPerFrame;
+    let y = top;
+    let x = x0 + ((layer.frameOffset + lengthInFrames) % lengthInFrames) * pixelsPerFrame;
+    for (let chunkIdx = 0; chunkIdx < addlInfo.maxAmplitudesInChunks.length; chunkIdx++) {
+      if (x >= x1) {
+        x = x0;
+        y += layerHeightInPixels;
       }
-      maxY = y;
+      const amplitude =
+        (((addlInfo.maxAmplitudesInChunks[
+          layer.backwards ? addlInfo.maxAmplitudesInChunks.length - chunkIdx - 1 : chunkIdx
+        ] /
+          addlInfo.maxAmplitudeInLayer) *
+          layerHeightInPixels) /
+          2) *
+        layer.gain;
+      ctx.beginPath();
+      ctx.moveTo(x, y - amplitude / 2);
+      ctx.lineTo(x, y + amplitude / 2);
+      ctx.stroke();
+      x += NUM_FRAMES_PER_CHUNK * pixelsPerFrame;
     }
 
     const centerX = GAIN_NUBBIN_SPACING / 2;
-    const centerY = (top + maxY) / 2;
+    const centerY = (top + y) / 2;
 
     addlInfo.gainNubbinCenterPosition = {
       x: centerX / devicePixelRatio,
       y: centerY / devicePixelRatio,
     };
     addlInfo.topY = (top - layerHeightInPixels / 2) / devicePixelRatio;
-    addlInfo.bottomY = (maxY + layerHeightInPixels / 2) / devicePixelRatio;
+    addlInfo.bottomY = (y + layerHeightInPixels / 2) / devicePixelRatio;
 
     // draw gain nubbin
     ctx.fillStyle = `rgba(${rgb}, ${alpha / 4})`;
@@ -422,7 +428,7 @@ function renderLayers() {
     ctx.arc(centerX, centerY, layer.gain * unitGainNubbinRadius, 0, 2 * Math.PI);
     ctx.fill();
 
-    top = maxY + layerHeightInPixels * 1.15;
+    top = y + layerHeightInPixels * 1.15;
   }
 
   // draw playhead

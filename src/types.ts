@@ -26,6 +26,7 @@ export interface LayerNoSamples {
   numFramesRecorded: number;
   soloed: boolean;
   muted: boolean;
+  backwards: boolean;
   gain: number;
 }
 

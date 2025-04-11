@@ -68,6 +68,7 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
       numFramesRecorded: 0,
       soloed: false,
       muted: false,
+      backwards: false,
       gain: 1,
     };
     this.samplesByLayerId.set(this.recordingLayer.id, new Float32Array(MAX_FRAMES_PER_CHANNEL));
@@ -174,9 +175,11 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
       // The samples for this layer haven't arrived yet (this will happen when we're running on automerge)
       return 0;
     }
+
+    const numSamplesRecorded = layer.numFramesRecorded / layer.numChannels;
     while (sampleIdx < numSamples) {
       if (sampleIdx >= 0) {
-        sample += samples[sampleIdx];
+        sample += samples[layer.backwards ? numSamplesRecorded - sampleIdx - 1 : sampleIdx];
       }
       sampleIdx += layer.lengthInFrames * layer.numChannels;
     }
