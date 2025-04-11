@@ -11,10 +11,16 @@ If you point at a layer,
 - press M to toggle mute
 - press S to toggle solo
 - press B to toggle backwards
-- press D to duplicate the layer (can shift the original and duplicate indpendently)
+- press D to duplicate the layer (can shift the original and duplicate independently)
 
 The blue bar at the right margin is the master volume slider.
 Point at it, hold down CONTROL and move mouse up/down to adjust it.
+
+The blue bar at the right margin is the master volume slider.
+Point at it, hold down CONTROL and move mouse up/down to adjust it.
+
+Press UP/DOWN to adjust the latency offset.
+It takes some trial and error to find the right setting for you input device and computer.
 
 # Ideas
 
