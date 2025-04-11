@@ -131,6 +131,9 @@ function onKeyDown(e: KeyboardEvent) {
     case 'Backspace':
       deleteLayer();
       break;
+    case '2':
+      duplicateLayer();
+      break;
     case 'm':
       toggleMuted();
       break;
@@ -186,6 +189,20 @@ function deleteLayer() {
       if (idx >= 0) {
         state.layers.splice(idx, 1);
       }
+    });
+  }
+}
+
+function duplicateLayer() {
+  const id = getLayerAtPointer();
+  if (id !== null) {
+    changeSharedState((state) => {
+      const idx = state.layers.findIndex((layer) => layer.id === id);
+      if (idx < 0) {
+        return;
+      }
+      const layer = state.layers[idx];
+      state.layers.splice(idx, 0, { ...layer, id: Math.random() });
     });
   }
 }
