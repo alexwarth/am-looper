@@ -6,7 +6,7 @@ To stop recording, press SPACE again.
 If you point at a layer,
 
 - hold SHIFT and move mouse left/right: slide layer in time
-- hold CONTROL and move mouse up/down: change gain (louder/softter)
+- hold CONTROL and move mouse up/down: change gain (louder/softer)
 - press BACKSPACE: delete the layer
 - press M: toggle mute
 - press S: toggle solo
@@ -27,3 +27,5 @@ Point at it, hold down CONTROL and move mouse up/down to adjust it.
 - Clean up the mess that I made with `devicePixelRatio`
 - Fix bug that's preventing me from using different input devices
 - Really think about the UI
+- Help the user find the right latency offset
+- Show new layers as they're being recorded
