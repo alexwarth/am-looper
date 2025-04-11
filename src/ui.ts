@@ -633,6 +633,8 @@ function displayFullHelp() {
   log('The blue bar at the right margin is the master volume slider.');
   log('Point at it, hold down ', b('CONTROL'), ' and move mouse up/down to adjust it.');
   log();
+  log('Press ', b('LEFT'), '/', b('RIGHT'), " to change the channel you're recording from.");
+  log();
   log('Press ', b('UP'), '/', b('DOWN'), ' to adjust the latency offset.');
   log('(The right setting depends on your input device and computer -- see what works best!)');
   log();

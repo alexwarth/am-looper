@@ -19,6 +19,9 @@ Point at it, hold down CONTROL and move mouse up/down to adjust it.
 The blue bar at the right margin is the master volume slider.
 Point at it, hold down CONTROL and move mouse up/down to adjust it.
 
+Press LEFT/RIGHT to change the channel you're recording from.
+(Multi-channel recording is coming, but this unlocks some stuff I wanted to do in the meantime.)
+
 Press UP/DOWN to adjust the latency offset.
 It takes some trial and error to find the right setting for you input device and computer.
 
@@ -30,7 +33,6 @@ It takes some trial and error to find the right setting for you input device and
 
 # TODO
 
-- Let the user set the channel of audio that's being recorded (maybe w/ the LEFT/RIGHT keys?)
 - Experiment w/ web audio's built-in echo cancellation for no-headphones operation
 - Really think about the UI
 - Help the user find the right latency offset
