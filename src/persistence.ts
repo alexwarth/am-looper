@@ -1,13 +1,22 @@
 export interface PersistentState {
   lastUsedDeviceId: string | null;
   deviceSpecificLatencyOffset: { [deviceId: string]: number };
+  channelToRecord: { [deviceId: string]: number };
 }
 
-export function loadPersistentState() {
+export function loadPersistentState(): PersistentState {
   let serializedPs = localStorage.getItem('ui-state');
-  return serializedPs !== null
-    ? JSON.parse(serializedPs)
-    : { lastUsedDeviceId: null, deviceSpecificLatencyOffset: {} };
+  const ps = serializedPs !== null ? JSON.parse(serializedPs) : {};
+  if (!('lastUsedDeviceId' in ps)) {
+    ps.lastUsedDeviceId = null;
+  }
+  if (!('deviceSpecificLatencyOffset' in ps)) {
+    ps.deviceSpecificLatencyOffset = {};
+  }
+  if (!('channelToRecord' in ps)) {
+    ps.channelToRecord = {};
+  }
+  return ps;
 }
 
 export function savePersistentState(ps: PersistentState) {

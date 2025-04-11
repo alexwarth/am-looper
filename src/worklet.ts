@@ -11,6 +11,7 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
   playhead = 0;
   masterGain = 1;
   latencyOffsetInChunks = 0;
+  channelToRecord = 0;
 
   constructor() {
     super();
@@ -52,6 +53,9 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
         break;
       case 'move playhead':
         this.movePlayhead(msg.value, true);
+        break;
+      case 'set channel to record':
+        this.channelToRecord = msg.channel;
         break;
       default:
         console.error('unsupported message', msg);
@@ -202,9 +206,8 @@ class Looper extends AudioWorkletProcessor implements AudioWorkletProcessorImpl 
 
     let sampleIdx = this.recordingLayer.numFramesRecorded++ * this.recordingLayer.numChannels;
     const samples = this.samplesByLayerId.get(this.recordingLayer.id)!;
-    for (let channel = 0; channel < this.recordingLayer.numChannels; channel++) {
-      samples[sampleIdx++] = input[channel][frameIdx];
-    }
+    // TODO: let the user record more than one channel if they want to
+    samples[sampleIdx++] = input[this.channelToRecord][frameIdx];
   }
 
   advancePlayhead() {

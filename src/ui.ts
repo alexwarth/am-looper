@@ -2,6 +2,7 @@ import { NUM_FRAMES_PER_CHUNK } from './constants';
 import { getLengthInFrames } from './helpers';
 import { loadPersistentState, changePersistentState } from './persistence';
 import {
+  InputDeviceInfo,
   Layer,
   LooperState,
   MessageFromWorklet,
@@ -11,26 +12,29 @@ import {
 } from './types';
 
 let looper: AudioWorkletNode;
-let inputDeviceId: string;
+let inputDeviceInfo: InputDeviceInfo;
 let state: UiState;
 let changeSharedState: (fn: (state: LooperState) => void) => void;
+let channelToRecord = 0;
 
 export function init(
   _looper: AudioWorkletNode,
-  _inputDeviceId: string,
+  _inputDeviceInfo: InputDeviceInfo,
   _state: UiState,
   _changeSharedState: (fn: (state: LooperState) => void) => void,
 ) {
   looper = _looper;
   (window as any).looper = looper;
-  inputDeviceId = _inputDeviceId;
+  inputDeviceInfo = _inputDeviceInfo;
   state = _state;
   changeSharedState = _changeSharedState;
 
   looper.port.onmessage = (msg) => onMessage(msg.data);
 
-  const latencyOffset = loadPersistentState().deviceSpecificLatencyOffset[inputDeviceId] ?? 20;
+  const latencyOffset = loadPersistentState().deviceSpecificLatencyOffset[inputDeviceInfo.id] ?? 20;
   sendToWorklet({ command: 'set latency offset', value: latencyOffset });
+
+  setChannelToRecord(loadPersistentState().channelToRecord[inputDeviceInfo.id] ?? 0);
 
   // keyboard
   window.addEventListener('keydown', onKeyDown);
@@ -67,12 +71,21 @@ function onMessage(m: MessageFromWorklet) {
     case 'changed latency offset':
       displayStatus(`latency offset = ${m.value}`);
       changePersistentState((state) => {
-        state.deviceSpecificLatencyOffset[inputDeviceId] = m.value;
+        state.deviceSpecificLatencyOffset[inputDeviceInfo.id] = m.value;
       });
       break;
     default:
       console.info('worklet:', m);
   }
+}
+
+function setChannelToRecord(channel: number) {
+  channelToRecord = channel;
+  changePersistentState((state) => {
+    state.channelToRecord[inputDeviceInfo.id] = channel;
+  });
+  sendToWorklet({ command: 'set channel to record', channel });
+  displayStatus(`channel to record = ${channel}`);
 }
 
 function changeLayer(id: number | null, fn: (layer: Layer) => void) {
@@ -149,6 +162,17 @@ function onKeyDown(e: KeyboardEvent) {
     case 'ArrowUp':
     case 'ArrowDown':
       changeLatencyOffsetBy(e.key === 'ArrowUp' ? 1 : -1);
+      break;
+    case 'ArrowLeft':
+    case 'ArrowRight':
+      channelToRecord = Math.max(
+        0,
+        Math.min(
+          channelToRecord + (e.key === 'ArrowLeft' ? -1 : 1),
+          inputDeviceInfo.numChannels - 1,
+        ),
+      );
+      setChannelToRecord(channelToRecord);
       break;
     case 'h':
       toggleFullHelp();

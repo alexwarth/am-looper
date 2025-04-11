@@ -39,7 +39,8 @@ export type MessageToWorklet =
   | { command: 'update layers'; layers: LayerNoSamples[] }
   | { command: 'set layer samples'; id: number; samples: Float32Array }
   | { command: 'set master gain'; value: number }
-  | { command: 'move playhead'; value: number };
+  | { command: 'move playhead'; value: number }
+  | { command: 'set channel to record'; channel: number };
 
 export type MessageFromWorklet =
   | { event: 'started recording'; frameOffset: number }
@@ -47,3 +48,8 @@ export type MessageFromWorklet =
   | { event: 'playhead moved'; value: number }
   | { event: 'changed latency offset'; value: number }
   | { event: 'debug'; payload: any };
+
+export interface InputDeviceInfo {
+  id: string;
+  numChannels: number;
+}

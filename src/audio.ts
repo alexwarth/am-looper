@@ -1,4 +1,9 @@
-export async function init(context: AudioContext, looper: AudioWorkletNode) {
+import { InputDeviceInfo } from './types';
+
+export async function init(
+  context: AudioContext,
+  looper: AudioWorkletNode,
+): Promise<InputDeviceInfo> {
   const deviceId = await selectDevice();
   const micStream = await navigator.mediaDevices.getUserMedia({
     audio: {
@@ -18,7 +23,7 @@ export async function init(context: AudioContext, looper: AudioWorkletNode) {
   context.resume();
   looper.connect(context.destination);
 
-  return deviceId;
+  return { id: deviceId, numChannels: mic.channelCount };
 }
 
 async function selectDevice() {
