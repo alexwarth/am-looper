@@ -582,9 +582,9 @@ function displayFullHelp() {
   log('To stop recording, press ', b('SPACE'), ' again.');
   log('');
   log('If you point at a layer,');
-  log('- hold ', b('SHIFT'), ' and move mouse left/right to slide layer in time');
+  log('- hold down ', b('SHIFT'), ' and move mouse left/right to slide layer in time');
   log(
-    '- hold ',
+    '- hold down ',
     b('CONTROL'),
     " and move mouse up/down to change the layer's gain (louder/softer)",
   );

@@ -5,8 +5,8 @@ To stop recording, press SPACE again.
 
 If you point at a layer,
 
-- hold SHIFT and move mouse left/right to slide layer in time
-- hold CONTROL and move mouse up/down to change the layer's gain (louder/softer)
+- hold down SHIFT and move mouse left/right to slide layer in time
+- hold down CONTROL and move mouse up/down to change the layer's gain (louder/softer)
 - press BACKSPACE to delete the layer
 - press M to toggle mute
 - press S to toggle solo
