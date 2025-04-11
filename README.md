@@ -5,13 +5,13 @@ To stop recording, press SPACE again.
 
 If you point at a layer,
 
-- hold SHIFT and move mouse left/right: slide layer in time
-- hold CONTROL and move mouse up/down: change gain (louder/softer)
-- press BACKSPACE: delete the layer
-- press M: toggle mute
-- press S: toggle solo
-- press B: toggle backwards
-- press D: duplicate layer (can shift the original and duplicate indpendently)
+- hold SHIFT and move mouse left/right to slide layer in time
+- hold CONTROL and move mouse up/down to change the layer's gain (louder/softer)
+- press BACKSPACE to delete the layer
+- press M to toggle mute
+- press S to toggle solo
+- press B to toggle backwards
+- press D to duplicate the layer (can shift the original and duplicate indpendently)
 
 The blue bar at the right margin is the master volume slider.
 Point at it, hold down CONTROL and move mouse up/down to adjust it.
