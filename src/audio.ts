@@ -8,7 +8,12 @@ export async function init(context: AudioContext, looper: AudioWorkletNode) {
     },
   });
   const mic = context.createMediaStreamSource(micStream);
+
+  // Super weird: I wasn't able to refresh the page and switch inputs successfully, but now I can.
+  // What changed? Just the console.log() below. Now that it's there, I can switch inputs without
+  // a hitch. TODO: figure out why!
   console.log('input stream', mic);
+
   mic.connect(looper).connect(context.destination);
   context.resume();
   looper.connect(context.destination);
