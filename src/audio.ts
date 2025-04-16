@@ -1,6 +1,11 @@
 import { InputDeviceInfo } from './types';
 
-const options = { autoGainControl: false, echoCancellation: false };
+const options = {
+  autoGainControl: false,
+  echoCancellation: false,
+};
+
+let useMidiPedal = true;
 
 export async function init(
   context: AudioContext,
@@ -22,7 +27,11 @@ export async function init(
   context.resume();
   looper.connect(context.destination);
 
-  return { id: deviceId, numChannels: mic.channelCount };
+  return {
+    id: deviceId,
+    numChannels: mic.channelCount,
+    useMidiPedal,
+  };
 }
 
 async function selectDevice() {
@@ -49,6 +58,7 @@ async function selectDevice() {
     buttons.appendChild(tag('div', document.createTextNode('Options:')));
     buttons.appendChild(option('autoGainControl', 'auto gain control'));
     buttons.appendChild(option('echoCancellation', 'echo cancellation'));
+    buttons.appendChild(option('useMidiPedal', 'use MIDI pedal'));
   });
 }
 
@@ -63,15 +73,13 @@ function tag(name: string, ...children: any) {
 function option(name: string, label: string) {
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
-  checkbox.checked = options[name];
-  checkbox.id = name;
+  checkbox.checked = name === 'useMidiPedal' ? useMidiPedal : options[name];
   checkbox.onchange = () => {
-    options[name] = checkbox.checked;
+    if (name === 'useMidiPedal') {
+      useMidiPedal = checkbox.checked;
+    } else {
+      options[name] = checkbox.checked;
+    }
   };
   return tag('span', checkbox, document.createTextNode(' ' + label));
-}
-
-function getOptionValue(id: string, defaultValue = false): boolean {
-  console.log(id, '=', document.getElementById(id));
-  return (document.getElementById(id) as HTMLInputElement)?.checked ?? defaultValue;
 }

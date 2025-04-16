@@ -16,8 +16,9 @@ let inputDeviceInfo: InputDeviceInfo;
 let state: UiState;
 let changeSharedState: (fn: (state: LooperState) => void) => void;
 let channelToRecord = 0;
+let midi: MIDIAccess | null = null;
 
-export function init(
+export async function init(
   _looper: AudioWorkletNode,
   _inputDeviceInfo: InputDeviceInfo,
   _state: UiState,
@@ -44,6 +45,28 @@ export function init(
   window.addEventListener('pointerdown', onPointerDown);
   window.addEventListener('pointermove', onPointerMove);
   window.addEventListener('pointerup', onPointerUp);
+
+  if (inputDeviceInfo.useMidiPedal) {
+    try {
+      midi = await navigator.requestMIDIAccess();
+      midi.inputs.forEach((input) => {
+        input.onmidimessage = (e) => {
+          if (!e.data) {
+            // no op
+          } else if (
+            e.data[0] >> 4 === 0xb && // CC
+            e.data[1] === 64 && // sustain
+            e.data[2] >= 64 // on
+          ) {
+            toggleRecording();
+          }
+        };
+      });
+      console.log('midi', midi);
+    } catch {
+      console.log('no midi :(');
+    }
+  }
 
   function onFrame() {
     render();

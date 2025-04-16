@@ -52,4 +52,5 @@ export type MessageFromWorklet =
 export interface InputDeviceInfo {
   id: string;
   numChannels: number;
+  useMidiPedal: boolean;
 }

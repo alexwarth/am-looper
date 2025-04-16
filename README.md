@@ -2,6 +2,7 @@
 
 To start recording a new layer, press SPACE.
 To stop recording, press SPACE again.
+(If you checked "use MIDI pedal", that will work, too!)
 
 If you point at a layer,
 

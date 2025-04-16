@@ -18,7 +18,7 @@ const inputDeviceInfo = await audio.init(context, looper);
 const knownLayerIds = new Set<number>();
 const state: UiState = { shared: { layers: [] }, playhead: 0, masterGain: 1 };
 
-ui.init(looper, inputDeviceInfo, state, changeSharedState);
+await ui.init(looper, inputDeviceInfo, state, changeSharedState);
 
 function sendToWorklet(msg: MessageToWorklet) {
   looper.port.postMessage(msg);
